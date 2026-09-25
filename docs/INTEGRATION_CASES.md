@@ -24,3 +24,10 @@ to encoded URLs and meters response bytes. Transport success is not trust
 success: feed the exact downloaded bytes through the client. For large files,
 use `open_download_stream` or `open_bundle_session`; finish each stream and
 atomically move staged files into place. Retry with a nondecreasing UTC time.
+
+`RefreshOutcome::accepted()` lists successfully accepted metadata in order.
+Each entry's `name()` is the actual repository request path, including a
+version prefix for rotated roots and consistent snapshots. It is not a
+mandatory local filename: the host chooses its storage layout, preserves its
+previous trusted state until the new state is durable, and must not promote a
+partially verified target bundle.

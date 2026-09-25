@@ -21,6 +21,9 @@ test "one-shot refresh composes four-role verification" {
   assert_true(outcome.status() is Complete)
   assert_true(outcome.client().ready())
   assert_eq(outcome.accepted().length(), 3)
+  assert_eq(outcome.accepted()[0].name(), "timestamp.json")
+  assert_eq(outcome.accepted()[1].name(), "snapshot.json")
+  assert_eq(outcome.accepted()[2].name(), "targets.json")
 }
 
 ///|
@@ -71,6 +74,33 @@ test "refresh can rotate root then validate metadata with new key" {
   assert_true(outcome.status() is Complete)
   assert_eq(outcome.client().root_version(), 2)
   assert_eq(outcome.accepted().length(), 4)
+  assert_eq(outcome.accepted()[0].name(), "2.root.json")
+}
+
+///|
+test "refresh reports versioned repository names for consistent snapshots" {
+  let key = @testkit.signer(56)
+  let targets = @testkit.empty_targets(3, key)
+  let snapshot = @testkit.snapshot(7, 3, targets, key)
+  let timestamp = @testkit.timestamp(9, 7, snapshot, key)
+  let client = open_trusted_root(
+    @testkit.root(1, key, [key], consistent_snapshot=true),
+    "2026-09-25T00:00:00Z",
+  ).unwrap()
+  let load = fn(name : String) -> Bytes? {
+    match name {
+      "timestamp.json" => Some(timestamp)
+      "7.snapshot.json" => Some(snapshot)
+      "3.targets.json" => Some(targets)
+      _ => None
+    }
+  }
+  let outcome = client.refresh(load)
+  assert_true(outcome.status() is Complete)
+  assert_eq(outcome.accepted().length(), 3)
+  assert_eq(outcome.accepted()[0].name(), "timestamp.json")
+  assert_eq(outcome.accepted()[1].name(), "7.snapshot.json")
+  assert_eq(outcome.accepted()[2].name(), "3.targets.json")
 }
 
 ///|

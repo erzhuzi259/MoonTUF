@@ -20,6 +20,14 @@ valid signatures are required for a role.
 **Trusted state**: Accepted metadata and history that determine whether a
 later update may be trusted.
 
+**Accepted metadata**: A role document whose trust checks passed and whose
+content has advanced the trusted state; later steps in the same update may
+still fail.
+
+**Repository metadata name**: The path by which an update repository serves a
+metadata document. It may include a version and is distinct from a host's
+local storage key.
+
 **Rollback baseline**: Last accepted metadata versions retained for rollback
 checks across update cycles. An authenticated change to the timestamp or
 snapshot signing-key set discards both online baselines to permit recovery

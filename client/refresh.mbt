@@ -6,9 +6,10 @@ pub(all) enum RefreshStatus {
 } derive(Debug)
 
 ///|
-/// Metadata accepted during a refresh. The host may persist these documents
-/// in order after inspecting the outcome; it should also retain its prior
-/// trusted state until all replacements are durable.
+/// Metadata accepted during a refresh. Its name is the repository path that
+/// was requested, including a version prefix when consistent snapshots are
+/// enabled. The host may persist these documents in order after inspecting
+/// the outcome; it should retain its prior state until replacements are durable.
 pub struct AcceptedMetadata {
   name : String
   raw : Bytes
@@ -78,7 +79,7 @@ pub fn Client::refresh(
       Ok(value) => value
       Err(error) => return outcome(current, Failed(error), accepted)
     }
-    accepted.push({ name: "root.json", raw: candidate, })
+    accepted.push({ name, raw: candidate, })
   }
   current = match current.finish_root_chain() {
     Ok(value) => value
@@ -121,7 +122,7 @@ pub fn Client::refresh(
     Ok(value) => value
     Err(error) => return outcome(current, Failed(error), accepted)
   }
-  accepted.push({ name: "snapshot.json", raw: snapshot_raw, })
+  accepted.push({ name: snapshot_name, raw: snapshot_raw, })
   let targets_name = match current.targets_request_name() {
     Ok(value) => value
     Err(error) => return outcome(current, Failed(error), accepted)
@@ -139,6 +140,6 @@ pub fn Client::refresh(
     Ok(value) => value
     Err(error) => return outcome(current, Failed(error), accepted)
   }
-  accepted.push({ name: "targets.json", raw: targets_raw, })
+  accepted.push({ name: targets_name, raw: targets_raw, })
   outcome(current, Complete, accepted)
 }

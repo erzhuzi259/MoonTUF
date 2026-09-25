@@ -12,6 +12,8 @@
   is finished.
 - Added an independent RFC 8032 Ed25519 verification vector and rotation
   regression tests.
+- Preserved the actual repository request name in refresh results, including
+  versioned root, snapshot, and targets metadata names.
 - Added host admission policies, multi-artifact verification, URL planning,
   response metering, diagnostics, synthetic fixtures and runnable examples.
 - Added local tests and continuous-integration configuration.
