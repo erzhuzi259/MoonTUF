@@ -5,5 +5,6 @@ import {
 
 import {
   "erzhuzi259/moontuf/testkit" @testkit,
+  "erzhuzi259/moontuf/crypto" @crypto,
   "moonbitlang/core/encoding/utf8",
 } for "test"
