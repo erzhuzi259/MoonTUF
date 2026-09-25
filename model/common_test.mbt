@@ -13,6 +13,31 @@ test "metadata envelope preserves raw and canonical signed bytes separately" {
 }
 
 ///|
+test "envelope signed AST mutations cannot change nested authenticated data" {
+  let raw = @utf8.encode(
+    "{\"signed\":{\"version\":1,\"nested\":{\"channels\":[{\"name\":\"stable\"}]}},\"signatures\":[]}",
+  )
+  let envelope = parse_envelope(raw).unwrap()
+  let original = envelope.canonical_signed()
+  let exposed = envelope.signed()
+  let channels = exposed
+    .field("nested")
+    .unwrap()
+    .field("channels")
+    .unwrap()
+    .as_list()
+    .unwrap()
+  let channel = channels[0].as_dict().unwrap()
+  channel[0] = ("name", Text("untrusted"))
+  channels.push(Text("injected"))
+  assert_eq(channels.length(), 2)
+  assert_eq(channels[0].field("name").unwrap().as_text(), Some("untrusted"))
+  assert_eq(@wire.canonical(envelope.signed()).to_array(), original.to_array())
+  assert_eq(envelope.canonical_signed().to_array(), original.to_array())
+  assert_eq(envelope.raw().to_array(), raw.to_array())
+}
+
+///|
 test "same signer cannot appear twice in an envelope" {
   let raw = @utf8.encode(
     "{\"signed\":{},\"signatures\":[{\"keyid\":\"x\",\"sig\":\"aa\"},{\"keyid\":\"x\",\"sig\":\"bb\"}]}",

@@ -117,7 +117,7 @@ pub fn parse_timestamp(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  let signed = envelope.signed()
+  let signed = envelope.signed
   let common = match parse_common(signed, "timestamp") {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -188,7 +188,7 @@ pub fn parse_snapshot(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  let signed = envelope.signed()
+  let signed = envelope.signed
   let common = match parse_common(signed, "snapshot") {
     Ok(value) => value
     Err(error) => return Err(error)

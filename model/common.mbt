@@ -44,8 +44,28 @@ pub fn Envelope::raw(self : Envelope) -> Bytes {
 }
 
 ///|
+/// Isolate the mutable containers in the public wire AST from model state.
+/// Scalar values are immutable; both dictionaries and lists need recursive
+/// copies because either can contain another mutable container.
+fn copy_wire_value(value : @wire.Value) -> @wire.Value {
+  match value {
+    List(items) => List(items.map(copy_wire_value))
+    Dict(entries) =>
+      Dict(
+        entries.map(fn(entry) {
+          let (name, child) = entry
+          (name, copy_wire_value(child))
+        }),
+      )
+    _ => value
+  }
+}
+
+///|
+/// Return a detached AST. Mutating its dictionaries or lists cannot change
+/// the payload represented by this envelope's cached raw and signed bytes.
 pub fn Envelope::signed(self : Envelope) -> @wire.Value {
-  self.signed
+  copy_wire_value(self.signed)
 }
 
 ///|

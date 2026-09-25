@@ -23,8 +23,10 @@ pub fn TargetFile::sha256(self : TargetFile) -> String {
 }
 
 ///|
+/// Custom policy data is detached from the parsed metadata, including all
+/// nested arrays and objects, so callers cannot mutate a trusted descriptor.
 pub fn TargetFile::custom(self : TargetFile) -> @wire.Value? {
-  self.custom
+  self.custom.map(copy_wire_value)
 }
 
 ///|
@@ -384,7 +386,7 @@ pub fn parse_targets(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  let signed = envelope.signed()
+  let signed = envelope.signed
   let common = match parse_common(signed, "targets") {
     Ok(value) => value
     Err(error) => return Err(error)

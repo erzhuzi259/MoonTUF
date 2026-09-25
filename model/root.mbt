@@ -203,7 +203,7 @@ pub fn parse_root(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  let signed = envelope.signed()
+  let signed = envelope.signed
   let common = match parse_common(signed, "root") {
     Ok(value) => value
     Err(error) => return Err(error)

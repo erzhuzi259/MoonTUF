@@ -6,6 +6,13 @@ size `M`, parsing and canonicalization require `O(M)` storage and roughly
 signing bytes. Signature verification adds one Ed25519 operation per distinct
 authorized signature inspected, bounded by role keys and metadata size.
 
+The public `Envelope::signed()` and `TargetFile::custom()` getters copy the
+mutable JSON containers recursively. A returned tree of `N` nodes costs
+`O(N)` time and space, with stack depth bounded by the parser's nesting limit.
+Internal metadata parsing reads the private tree directly. Hosts should reuse
+their detached policy view within an operation when repeatedly inspecting a
+large custom object.
+
 Delegated target lookup visits at most the configured role budget (default
 32, hard cap 64). Its ordered DFS uses an array for visited-role membership,
 so the bookkeeping worst case is `O(V²)` over `V` visited roles, plus parsing
