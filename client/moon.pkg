@@ -1,0 +1,11 @@
+import {
+  "erzhuzi259/moontuf/model" @model,
+  "erzhuzi259/moontuf/trust" @trust,
+  "erzhuzi259/moontuf/wire" @wire,
+  "erzhuzi259/moontuf/crypto" @crypto,
+}
+
+import {
+  "erzhuzi259/moontuf/testkit" @testkit,
+  "moonbitlang/core/encoding/utf8",
+} for "test"
