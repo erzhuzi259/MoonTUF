@@ -5,8 +5,9 @@ MoonTUF's implementation code is original and licensed under Apache-2.0.
 Runtime dependency: `moonbitstack/mooncrypt` 0.3.1, Apache-2.0. It supplies
 Ed25519 signature verification and SHA-256; MoonTUF does not reimplement
 cryptographic primitives. Its transitive dependencies are `moonbitstack/moonbase`
-0.4.0 and `moonbitstack/moondate` 0.1.0. Their licenses should be verified again
-when the dependency lock is refreshed.
+0.4.0 and `moonbitstack/moondate` 0.1.0; their installed `moon.mod` files also
+declare Apache-2.0. Recheck the license and dependency graph when refreshing
+versions.
 
 Protocol semantics were researched from [The Update Framework Specification
 1.0.36](https://theupdateframework.github.io/specification/latest/) and its

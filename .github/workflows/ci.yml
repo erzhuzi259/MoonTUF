@@ -41,7 +41,7 @@ jobs:
       - name: Check, build, and test native packages
         run: |
           moon check --target native --deny-warn
-          moon build --target native --deny-warn
-          moon test --target native --deny-warn
+          moon build --target native --release --deny-warn
+          moon test --target native --release --deny-warn
       - name: Run native offline scenarios
-        run: moon run --target native examples/offline
+        run: moon run --target native --release examples/offline
