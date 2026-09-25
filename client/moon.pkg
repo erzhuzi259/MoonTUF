@@ -3,6 +3,8 @@ import {
   "erzhuzi259/moontuf/trust" @trust,
   "erzhuzi259/moontuf/wire" @wire,
   "erzhuzi259/moontuf/crypto" @crypto,
+  "moonbitstack/mooncrypt/hash/sha2" @sha2,
+  "moonbitstack/mooncrypt/spec" @spec,
 }
 
 import {

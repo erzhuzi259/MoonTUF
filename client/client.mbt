@@ -16,6 +16,7 @@ pub(all) enum ClientError {
   TargetNotFound(String)
   MetadataUnavailable(String)
   DelegationLimit(Int)
+  AlreadyFinished
   InvalidPath(String)
 } derive(Debug)
 
