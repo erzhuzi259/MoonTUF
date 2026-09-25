@@ -1,0 +1,10 @@
+import {
+  "erzhuzi259/moontuf/client",
+  "erzhuzi259/moontuf/crypto",
+  "erzhuzi259/moontuf/integrations/admission",
+  "erzhuzi259/moontuf/report",
+  "erzhuzi259/moontuf/testkit",
+  "moonbitlang/core/encoding/utf8",
+}
+
+pkgtype(kind: "executable")
