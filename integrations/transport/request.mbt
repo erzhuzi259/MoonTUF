@@ -154,6 +154,43 @@ pub fn RequestHint::meter(self : RequestHint) -> RequestMeter {
 }
 
 ///|
+/// Fail early on unsafe response headers. Content-Length may lie or be
+/// absent; the host must still meter actual bytes and verify their signatures
+/// or hashes. Redirects and transparent decompression are not accepted here.
+pub fn RequestHint::check_response(
+  self : RequestHint,
+  status_code : Int,
+  declared_length : Int64?,
+  content_encoding : String,
+) -> Result[Unit, UrlError] {
+  if status_code != 200 {
+    return Err(UnexpectedHttpStatus(status_code))
+  }
+  if content_encoding != "" && content_encoding.to_lower() != "identity" {
+    return Err(UnsupportedContentEncoding)
+  }
+  match declared_length {
+    Some(length) => {
+      if length < 0L {
+        return Err(InvalidRequestBudget)
+      }
+      if length > self.max_bytes {
+        return Err(ResponseTooLarge(length, self.max_bytes))
+      }
+      match self.exact_bytes {
+        Some(expected) =>
+          if length != expected {
+            return Err(ResponseLengthMismatch(expected, length))
+          }
+        None => ()
+      }
+    }
+    None => ()
+  }
+  Ok(())
+}
+
+///|
 pub fn RequestMeter::bytes_seen(self : RequestMeter) -> Int64 {
   self.seen
 }
@@ -183,6 +220,14 @@ pub fn RequestMeter::consume(
   }
   self.seen += chunk_length
   Ok(())
+}
+
+///|
+pub fn RequestMeter::consume_bytes(
+  self : RequestMeter,
+  chunk : Bytes,
+) -> Result[Unit, UrlError] {
+  self.consume(chunk.length().to_int64())
 }
 
 ///|

@@ -12,6 +12,8 @@ pub(all) enum UrlError {
   ResponseTooLarge(Int64, Int64)
   ResponseLengthMismatch(Int64, Int64)
   RequestMeterClosed
+  UnexpectedHttpStatus(Int)
+  UnsupportedContentEncoding
 } derive(Debug)
 
 ///|

@@ -58,3 +58,20 @@ test "request meter rejects negative sizes and double finish" {
   assert_eq(second.finish().unwrap(), 3L)
   assert_true(second.finish() is Err(RequestMeterClosed))
 }
+
+///|
+test "request preflight rejects redirects and compressed responses" {
+  let urls = repository_urls("https://example.org/m", "https://example.org/t").unwrap()
+  let hint = urls.timestamp_request(10L).unwrap()
+  assert_true(
+    hint.check_response(302, None, "") is Err(UnexpectedHttpStatus(302)),
+  )
+  assert_true(
+    hint.check_response(200, None, "gzip") is Err(UnsupportedContentEncoding),
+  )
+  assert_true(
+    hint.check_response(200, Some(11L), "identity")
+    is Err(ResponseTooLarge(11L, 10L)),
+  )
+  assert_true(hint.check_response(200, Some(5L), "identity") is Ok(_))
+}
