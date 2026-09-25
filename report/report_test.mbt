@@ -1,9 +1,9 @@
 ///|
 test "diagnostic codes remain stable and omit attacker-controlled path" {
-  let failure = @client.HashMismatch("models/private/secret.bin")
+  let failure = @client.HashMismatch("target:models/private/secret.bin")
   let report = diagnose(failure)
   assert_eq(report.code(), "integrity.sha256")
-  assert_eq(report.stage(), "metadata")
+  assert_eq(report.stage(), "target")
   let json = report.to_json()
   assert_true(json.contains("\"schema\":\"moontuf.diagnostic.v1\""))
   assert_false(json.contains("private"))

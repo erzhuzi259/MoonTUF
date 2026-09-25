@@ -116,7 +116,11 @@ pub fn TargetStream::write(
   let chunk_length = chunk.length().to_int64()
   if chunk_length > self.expected_length - self.seen {
     return Err(
-      LengthMismatch(self.path, self.expected_length, self.seen + chunk_length),
+      LengthMismatch(
+        "target:" + self.path,
+        self.expected_length,
+        self.seen + chunk_length,
+      ),
     )
   }
   if chunk_length > self.maximum - self.seen {
@@ -143,15 +147,17 @@ pub fn TargetStream::finish(
   }
   self.finished = true
   if self.seen != self.expected_length {
-    return Err(LengthMismatch(self.path, self.expected_length, self.seen))
+    return Err(
+      LengthMismatch("target:" + self.path, self.expected_length, self.seen),
+    )
   }
   let digest = self.hasher.finish()
   let expected = match @crypto.decode_hex(self.expected_sha256) {
     Ok(value) => value
-    Err(_) => return Err(HashMismatch(self.path))
+    Err(_) => return Err(HashMismatch("target:" + self.path))
   }
   if !@spec.eq(digest[:], expected[:]) {
-    return Err(HashMismatch(self.path))
+    return Err(HashMismatch("target:" + self.path))
   }
   Ok({ path: self.path, length: self.seen, sha256: self.expected_sha256, })
 }

@@ -50,6 +50,17 @@ fn run_single(
     @admission.Current => println("[\{label}] already installed")
     @admission.Download(ticket) => {
       println("[\{label}] requested \{ticket.repository_name()}")
+      let urls = @transport.repository_urls(
+        "https://updates.example.invalid/metadata", "https://updates.example.invalid/targets",
+      ).unwrap()
+      let hint = urls.target_request(ticket).unwrap()
+      hint
+      .check_response(200, Some(bytes.length().to_int64()), "identity")
+      .unwrap()
+      let meter = hint.meter()
+      meter.consume_bytes(bytes).unwrap()
+      ignore(meter.finish().unwrap())
+      println("[\{label}] bounded fetch URL: \{hint.url()}")
       let verified = @admission.verify_download(client, ticket, bytes, load).unwrap()
       println(
         "[\{label}] verified \{verified.path()}, bytes=\{verified.length()}, sha256=\{verified.sha256()}",

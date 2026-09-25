@@ -46,11 +46,15 @@ pub fn Client::verify_top_level_target(
   }
   if candidate.length().to_int64() != descriptor.length() {
     return Err(
-      LengthMismatch(path, descriptor.length(), candidate.length().to_int64()),
+      LengthMismatch(
+        "target:" + path,
+        descriptor.length(),
+        candidate.length().to_int64(),
+      ),
     )
   }
   if !@crypto.matches_sha256(candidate, descriptor.sha256()) {
-    return Err(HashMismatch(path))
+    return Err(HashMismatch("target:" + path))
   }
   Ok({ path, bytes: candidate, sha256: descriptor.sha256(), })
 }
