@@ -1,0 +1,9 @@
+import {
+  "erzhuzi259/moontuf/client" @client,
+  "erzhuzi259/moontuf/model" @model,
+}
+
+import {
+  "erzhuzi259/moontuf/testkit" @testkit,
+  "moonbitlang/core/encoding/utf8",
+} for "test"
