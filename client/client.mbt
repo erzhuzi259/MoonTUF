@@ -9,6 +9,7 @@ pub(all) enum ClientError {
   Rollback(String, Int, Int)
   Unchanged(String, Int)
   ResourceLimit(String, Int, Int)
+  LengthMismatch(String, Int, Int)
   HashMismatch(String)
   MissingDescriptor(String)
   RootRotationLimit(Int)
@@ -85,6 +86,7 @@ pub struct Client {
   root : @model.Root
   timestamp : @model.Timestamp?
   snapshot : @model.Snapshot?
+  previous_snapshot : @model.Snapshot?
   targets : @model.Targets?
   update_start : String
   budget : Budgets
@@ -149,6 +151,7 @@ pub fn open_trusted_root(
     root,
     timestamp: None,
     snapshot: None,
+    previous_snapshot: None,
     targets: None,
     update_start,
     budget,

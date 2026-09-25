@@ -44,6 +44,10 @@ pub fn Client::accept_timestamp(self : Client, raw : Bytes) -> Result[Client, Cl
     root: self.root,
     timestamp: Some(candidate),
     snapshot: None,
+    previous_snapshot: match self.snapshot {
+      Some(value) => Some(value)
+      None => self.previous_snapshot
+    },
     targets: None,
     update_start: self.update_start,
     budget: self.budget,

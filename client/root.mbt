@@ -40,6 +40,7 @@ pub fn Client::advance_root(self : Client, candidate_raw : Bytes) -> Result[Clie
     // Drop all cached metadata and require a fresh chain under the new root.
     timestamp: None,
     snapshot: None,
+    previous_snapshot: None,
     targets: None,
     update_start: self.update_start,
     budget: self.budget,
