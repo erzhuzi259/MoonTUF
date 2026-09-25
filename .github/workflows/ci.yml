@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  portable:
+    name: Portable MoonBit (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: hustcer/setup-moonbit@v1.22
+      - name: Resolve dependencies
+        run: moon update
+      - name: Verify formatting
+        run: moon fmt --check
+      - name: Check every backend
+        run: moon check --target all --deny-warn
+      - name: Build portable code
+        run: moon build --target wasm-gc --deny-warn
+      - name: Test portable code
+        run: moon test --target wasm-gc --deny-warn
+      - name: Run offline scenarios
+        run: moon run examples/offline
+
+  native-linux:
+    name: Native MoonBit (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: hustcer/setup-moonbit@v1.22
+      - run: moon update
+      - name: Check, build, and test native packages
+        run: |
+          moon check --target native --deny-warn
+          moon build --target native --deny-warn
+          moon test --target native --deny-warn
+      - name: Run native offline scenarios
+        run: moon run --target native examples/offline
