@@ -81,6 +81,8 @@ mirrors, download/install logic, private key handling, automatic trusted-clock
 acquisition, or a general-purpose HTTP client. Some optional TUF extension
 surfaces are not yet independently tested. See [`docs/POUF.md`](docs/POUF.md)
 and [`docs/CONFORMANCE.md`](docs/CONFORMANCE.md) before interoperability use.
+Complexity and performance limits are recorded in
+[`docs/PERFORMANCE.md`](docs/PERFORMANCE.md).
 
 ## Ecosystem value
 
@@ -99,3 +101,5 @@ Apache-2.0 applies to original code; cryptographic primitives are supplied by
 `moonbitstack/mooncrypt` 0.3.1 (Apache-2.0). No reference TUF implementation
 code was copied. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 Contributions and security reports are described in [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Local build/test evidence and deliberately pending release gates are in
+[`docs/VERIFICATION.md`](docs/VERIFICATION.md).

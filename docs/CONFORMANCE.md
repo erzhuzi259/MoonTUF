@@ -14,7 +14,8 @@ moon build
 moon run examples/offline
 ```
 
-Repository CI repeats standard checks and example smoke tests. A passing
+The configured repository CI repeats standard checks and example smoke tests
+once pushed to GitHub; no remote run has occurred yet. A passing
 local suite is **not** evidence that the upstream [TUF conformance suite](https://github.com/theupdateframework/tuf-conformance)
 passes. That suite and independent security review remain future work. Do not
 advertise MoonTUF as a certified or audited TUF client.
