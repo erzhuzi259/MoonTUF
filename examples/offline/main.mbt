@@ -40,14 +40,14 @@ fn run_single(
   let base = @client.open_trusted_root(root, "2026-09-25T00:00:00Z").unwrap()
   let refreshed = base.refresh(load)
   if !(refreshed.status() is @client.Complete) {
-    println("[\{label}] refresh failed")
-    return
+    abort("[\{label}] expected a complete metadata refresh")
   }
   let client = refreshed.client()
   let policy = @admission.policy(prefix~, max_bytes=4096L).unwrap()
   let decision = @admission.evaluate(client, path, policy, load).unwrap()
   match decision {
-    @admission.Current => println("[\{label}] already installed")
+    @admission.Current =>
+      abort("[\{label}] expected a download without an installed digest")
     @admission.Download(ticket) => {
       println("[\{label}] requested \{ticket.repository_name()}")
       let urls = @transport.repository_urls(
@@ -76,11 +76,13 @@ fn run_single(
   ).unwrap()
   if installed is @admission.Current {
     println("[\{label}] installed digest matches trusted target")
+  } else {
+    abort("[\{label}] matching installed digest was not recognized")
   }
   let bad = @utf8.encode(content + " tampered")
   match client.verify_target(path, bad, load) {
     Err(error) => show_diagnostic(label, error)
-    Ok(_) => println("[\{label}] ERROR: tampering was accepted")
+    Ok(_) => abort("[\{label}] tampering was accepted")
   }
 }
 
@@ -98,13 +100,16 @@ fn run_bundle() -> Unit {
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
   let load = metadata_loader(timestamp, snapshot, targets)
-  let client = @client.open_trusted_root(
+  let refreshed = @client.open_trusted_root(
       @testkit.root(1, key, [key]),
       "2026-09-25T00:00:00Z",
     )
     .unwrap()
     .refresh(load)
-    .client()
+  if !(refreshed.status() is @client.Complete) {
+    abort("[bundle] expected a complete metadata refresh")
+  }
+  let client = refreshed.client()
   let policy = @admission.bundle_policy(
     @admission.policy(prefix="plugins", max_bytes=4096L).unwrap(),
     max_files=2,
@@ -116,6 +121,9 @@ fn run_bundle() -> Unit {
     policy,
     load,
   ).unwrap()
+  if plan.tickets().length() != 2 {
+    abort("[bundle] expected exactly two download tickets")
+  }
   println(
     "[bundle] planned \{plan.tickets().length()} files, \{plan.total_bytes()} bytes",
   )
@@ -125,6 +133,9 @@ fn run_bundle() -> Unit {
   session.write_file(1, data).unwrap()
   session.finish_file(1).unwrap()
   let verified = session.finish_bundle().unwrap()
+  if verified.length() != 2 {
+    abort("[bundle] expected exactly two verified receipts")
+  }
   println("[bundle] all \{verified.length()} files verified before commit")
 }
 
