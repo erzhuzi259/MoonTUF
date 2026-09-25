@@ -39,3 +39,12 @@ test "root parser rejects a forged key identifier" {
   let forged = text.replace(old="0000000000000000000000000000000000000000000000000000000000000000", new="1111111111111111111111111111111111111111111111111111111111111111")
   assert_true(parse_root(@utf8.encode(forged)) is Err(InvalidKeyId(_)))
 }
+
+///|
+test "public root role access cannot mutate trusted key authorization" {
+  let root = parse_root(root_fixture(1)).unwrap()
+  let exported = root.role("root").unwrap().keyids()
+  let original = exported[0]
+  exported[0] = "attacker"
+  assert_eq(root.role("root").unwrap().keyids()[0], original)
+}

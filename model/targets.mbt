@@ -79,17 +79,19 @@ pub struct DelegatedRole {
 pub fn DelegatedRole::name(self : DelegatedRole) -> String { self.name }
 
 ///|
-pub fn DelegatedRole::keyids(self : DelegatedRole) -> Array[String] { self.keyids }
+pub fn DelegatedRole::keyids(self : DelegatedRole) -> Array[String] { self.keyids.copy() }
 
 ///|
 pub fn DelegatedRole::threshold(self : DelegatedRole) -> Int { self.threshold }
 
 ///|
-pub fn DelegatedRole::paths(self : DelegatedRole) -> Array[String]? { self.paths }
+pub fn DelegatedRole::paths(self : DelegatedRole) -> Array[String]? {
+  self.paths.map(items => items.copy())
+}
 
 ///|
 pub fn DelegatedRole::path_hash_prefixes(self : DelegatedRole) -> Array[String]? {
-  self.path_hash_prefixes
+  self.path_hash_prefixes.map(items => items.copy())
 }
 
 ///|
@@ -102,10 +104,10 @@ pub struct Delegations {
 }
 
 ///|
-pub fn Delegations::keys(self : Delegations) -> Array[PublicKey] { self.keys }
+pub fn Delegations::keys(self : Delegations) -> Array[PublicKey] { self.keys.copy() }
 
 ///|
-pub fn Delegations::roles(self : Delegations) -> Array[DelegatedRole] { self.roles }
+pub fn Delegations::roles(self : Delegations) -> Array[DelegatedRole] { self.roles.copy() }
 
 ///|
 pub fn Delegations::key(self : Delegations, keyid : String) -> PublicKey? {
@@ -273,7 +275,7 @@ pub fn Targets::envelope(self : Targets) -> Envelope { self.envelope }
 pub fn Targets::common(self : Targets) -> Common { self.common }
 
 ///|
-pub fn Targets::targets(self : Targets) -> Array[TargetFile] { self.targets }
+pub fn Targets::targets(self : Targets) -> Array[TargetFile] { self.targets.copy() }
 
 ///|
 pub fn Targets::delegations(self : Targets) -> Delegations? { self.delegations }

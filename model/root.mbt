@@ -17,7 +17,7 @@ pub struct RoleKeys {
 }
 
 ///|
-pub fn RoleKeys::keyids(self : RoleKeys) -> Array[String] { self.keyids }
+pub fn RoleKeys::keyids(self : RoleKeys) -> Array[String] { self.keyids.copy() }
 
 ///|
 pub fn RoleKeys::threshold(self : RoleKeys) -> Int { self.threshold }
@@ -41,7 +41,7 @@ pub fn Root::common(self : Root) -> Common { self.common }
 pub fn Root::consistent_snapshot(self : Root) -> Bool { self.consistent_snapshot }
 
 ///|
-pub fn Root::keys(self : Root) -> Array[PublicKey] { self.keys }
+pub fn Root::keys(self : Root) -> Array[PublicKey] { self.keys.copy() }
 
 ///|
 pub fn Root::role(self : Root, name : String) -> RoleKeys? {

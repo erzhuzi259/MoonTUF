@@ -19,6 +19,7 @@ test "snapshot requires targets metadata and safe names" {
   assert_true(safe_metadata_name("delegated/a.json"))
   assert_false(safe_metadata_name("../evil.json"))
   assert_false(safe_metadata_name("C:\\evil.json"))
+  assert_false(safe_metadata_name("a/./evil.json"))
 }
 
 ///|

@@ -47,7 +47,7 @@ pub fn Envelope::canonical_signed(self : Envelope) -> Bytes {
 
 ///|
 pub fn Envelope::signatures(self : Envelope) -> Array[Signature] {
-  self.signatures
+  self.signatures.copy()
 }
 
 ///|

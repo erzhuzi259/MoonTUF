@@ -129,7 +129,7 @@ pub fn Snapshot::envelope(self : Snapshot) -> Envelope { self.envelope }
 pub fn Snapshot::common(self : Snapshot) -> Common { self.common }
 
 ///|
-pub fn Snapshot::metafiles(self : Snapshot) -> Array[(String, MetaFile)] { self.meta }
+pub fn Snapshot::metafiles(self : Snapshot) -> Array[(String, MetaFile)] { self.meta.copy() }
 
 ///|
 pub fn Snapshot::metafile(self : Snapshot, name : String) -> MetaFile? {
@@ -181,13 +181,5 @@ pub fn parse_snapshot(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> R
 
 ///|
 pub fn safe_metadata_name(name : String) -> Bool {
-  let bytes = @utf8.encode(name)
-  if bytes.length() < 6 || !name.has_suffix(".json") { return false }
-  if bytes[0].to_int() == 47 || bytes[0].to_int() == 92 { return false }
-  if name.contains("..") || name.contains("\\") || name.contains(":") { return false }
-  for byte in bytes {
-    let ch = byte.to_int()
-    if ch < 32 || ch == 127 { return false }
-  }
-  true
+  name.has_suffix(".json") && safe_target_path(name)
 }
