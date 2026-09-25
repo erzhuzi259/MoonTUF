@@ -11,3 +11,7 @@ keywords = [ "tuf", "software-update", "metadata", "verification", "supply-chain
 preferred_target = "wasm-gc"
 
 description = "Embeddable TUF 1.x client verification core for MoonBit"
+
+import {
+  "moonbitstack/mooncrypt@0.3.1",
+}

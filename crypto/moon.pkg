@@ -1,0 +1,6 @@
+import {
+  "moonbitlang/core/encoding/utf8",
+  "moonbitstack/mooncrypt/hash/sha2" @sha2,
+  "moonbitstack/mooncrypt/sign/ed25519" @ed25519,
+  "moonbitstack/mooncrypt/spec" @spec,
+}
