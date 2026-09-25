@@ -171,7 +171,8 @@ fn delegated_role(raw : @wire.Value, keys : Array[PublicKey]) -> Result[Delegate
   }
   if paths is Some(items) {
     for item in items {
-      if item == "" || item.contains("\\") || item.contains("..") {
+      if item == "" || @utf8.encode(item).length() > 1024 ||
+        item.contains("\\") || item.contains("..") {
         return Err(InvalidValue(parent + ".paths", "unsafe path pattern"))
       }
     }
