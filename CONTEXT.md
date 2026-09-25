@@ -1,22 +1,38 @@
 # MoonTUF domain context
 
-MoonTUF has one bounded context: a client deciding whether proposed update
-metadata and target bytes can advance an existing trusted state.
+MoonTUF has one bounded context: deciding whether proposed update metadata
+and target bytes can advance an existing trusted state.
 
-| Term | Meaning |
-| --- | --- |
-| Trusted root | Locally anchored root metadata that defines keys and thresholds for top-level roles. |
-| Candidate root | A newly supplied root that may replace trusted root only after sequential old/new authorization. |
-| Role | A named authority (`root`, `timestamp`, `snapshot`, `targets`, or delegated targets). |
-| Metadata | Signed, versioned, expiring role document. |
-| Signature threshold | Minimum number of distinct authorized key IDs that verify one metadata document. |
-| Trusted state | The last accepted versions and metadata that protect the next update against rollback and mix-and-match. |
-| Update start time | One caller-supplied instant fixed throughout a refresh, used for expiry decisions. |
-| Target descriptor | Trusted metadata binding a target path to an exact length and hashes. |
-| Candidate target | Bytes supplied by the host for verification against a trusted descriptor. |
-| Rejection | Structured reason a proposed transition or target cannot be trusted. |
-| Resource budget | Explicit maximum sizes and graph visits for untrusted inputs. |
+## Language
 
-The core decides trust; the host owns transport, persistence, installation,
-clock sourcing and private keys. A verified target is only an authentic byte
-sequence for a path, not a statement that it is safe to run.
+**Trusted root**: Locally anchored metadata defining the top-level role
+authorities. _Avoid_: self-signed root, downloaded root.
+
+**Candidate root**: A proposed successor to the trusted root, accepted only
+through sequential old- and new-authority approval.
+
+**Role**: A named authority for root, timestamp, snapshot, targets, or
+delegated targets metadata.
+
+**Signature threshold**: Minimum number of distinct authorized key IDs whose
+valid signatures are required for a role.
+
+**Trusted state**: Accepted metadata and history that determine whether a
+later update may be trusted.
+
+**Rollback baseline**: Last accepted metadata versions retained for rollback
+checks across update cycles. An authenticated change to the timestamp or
+snapshot signing-key set discards both online baselines to permit recovery
+from a fast-forward attack.
+
+**Update start time**: One caller-supplied instant fixed for a complete update
+cycle's expiry decisions.
+
+**Target descriptor**: Trusted metadata binding one target path to expected
+length and digest.
+
+**Candidate target**: Bytes supplied by the host for comparison with a
+trusted target descriptor.
+
+**Verified target**: A candidate whose exact bytes match a trusted descriptor;
+this says nothing about whether execution or installation is safe.

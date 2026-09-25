@@ -6,6 +6,12 @@
   trusted-state progression.
 - Added root rotation, rollback/expiry enforcement, delegated target lookup,
   target streams, checkpoints and repeatable update cycles.
+- Corrected authenticated online-key rotation to clear stale timestamp and
+  snapshot rollback baselines for fast-forward recovery, while retaining them
+  across root-only key changes; target use remains gated until the root chain
+  is finished.
+- Added an independent RFC 8032 Ed25519 verification vector and rotation
+  regression tests.
 - Added host admission policies, multi-artifact verification, URL planning,
   response metering, diagnostics, synthetic fixtures and runnable examples.
 - Added local tests and continuous-integration configuration.

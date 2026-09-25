@@ -14,6 +14,9 @@ certification. The normative source is [the TUF specification](https://theupdate
 - Sequential root rotation signed by both old and new root thresholds.
   Timestamp pins snapshot; snapshot pins targets and delegated metadata.
   Consistent-snapshot request names are supported.
+- After authenticated timestamp or snapshot authority rotation, old online
+  rollback baselines are cleared for fast-forward recovery; root-only rotation
+  retains them. Target use is blocked until root-chain probing completes.
 - Delegation order, terminating roles, path restrictions and visit limits;
   exact target length and hash verification in memory or by stream.
 

@@ -21,3 +21,8 @@ No source files from those projects are copied into MoonTUF.
 public test seeds. The scenario bytes and fixture code are original to this
 repository; no private or production signing material is included. Any later
 imported vector must include its source and license here.
+
+`crypto/crypto_test.mbt` includes the public Ed25519 TEST 1 key/signature
+from [RFC 8032 §7.1](https://www.rfc-editor.org/rfc/rfc8032.html#section-7.1),
+used solely as a verification known-answer vector. It does not include the
+private test seed.

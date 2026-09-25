@@ -15,7 +15,8 @@ maintainer authorizes a GitHub push and Mooncakes publication.
 ## What it verifies
 
 - An out-of-band trusted root anchor; Ed25519 threshold signatures and
-  sequential N+1 root rotation signed by both the old and new authorities.
+  sequential N+1 root rotation signed by both the old and new authorities,
+  including online-key-rotation recovery from fast-forwarded versions.
 - Timestamp, snapshot, and targets expiry, rollback, version pinning, and
   metadata length/SHA-256 chains. One fixed UTC time is supplied per cycle.
 - Depth-first delegated targets (including terminating roles), path matching,

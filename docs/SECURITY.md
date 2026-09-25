@@ -10,6 +10,11 @@ by a backward clock jump. Persist accepted root and checkpoint state
 atomically, protected against local rollback. A checkpoint SHA-256 is a
 corruption detector, not an anti-tamper MAC.
 
+Changing timestamp or snapshot signing authority in a dual-signed root update
+resets their old rollback baselines so a recovered repository can escape a
+fast-forward attack. The host must persist that root change before relying on
+new online metadata. A root-only key change does not reset these baselines.
+
 Fetchers must enforce byte limits before buffering, including when a server
 omits or lies about Content-Length. The transport helper percent-encodes path
 bytes, but hosts must still restrict redirects, origin changes, decompression
