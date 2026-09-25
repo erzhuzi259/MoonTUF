@@ -5,9 +5,9 @@ import {
   "erzhuzi259/moontuf/crypto" @crypto,
   "moonbitstack/mooncrypt/hash/sha2" @sha2,
   "moonbitstack/mooncrypt/spec" @spec,
+  "moonbitlang/core/encoding/utf8",
 }
 
 import {
   "erzhuzi259/moontuf/testkit" @testkit,
-  "moonbitlang/core/encoding/utf8",
 } for "test"

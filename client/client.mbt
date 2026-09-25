@@ -17,6 +17,8 @@ pub(all) enum ClientError {
   MetadataUnavailable(String)
   DelegationLimit(Int)
   AlreadyFinished
+  CheckpointMalformed(String)
+  CheckpointRootMismatch
   InvalidPath(String)
 } derive(Debug)
 
@@ -49,21 +51,21 @@ pub fn budgets(
   max_json_nodes? : Int = 100000,
 ) -> Budgets {
   {
-    max_root_bytes: positive_budget(max_root_bytes),
-    max_timestamp_bytes: positive_budget(max_timestamp_bytes),
-    max_snapshot_bytes: positive_budget(max_snapshot_bytes),
-    max_targets_bytes: positive_budget(max_targets_bytes),
-    max_target_bytes: positive_budget(max_target_bytes),
-    max_root_rotations: positive_budget(max_root_rotations),
-    max_delegated_roles: positive_budget(max_delegated_roles),
-    max_json_depth: positive_budget(max_json_depth),
-    max_json_nodes: positive_budget(max_json_nodes),
+    max_root_bytes: bounded_budget(max_root_bytes, 16 * 1024 * 1024),
+    max_timestamp_bytes: bounded_budget(max_timestamp_bytes, 16 * 1024 * 1024),
+    max_snapshot_bytes: bounded_budget(max_snapshot_bytes, 256 * 1024 * 1024),
+    max_targets_bytes: bounded_budget(max_targets_bytes, 256 * 1024 * 1024),
+    max_target_bytes: bounded_budget(max_target_bytes, 1024 * 1024 * 1024),
+    max_root_rotations: bounded_budget(max_root_rotations, 1024),
+    max_delegated_roles: bounded_budget(max_delegated_roles, 1024),
+    max_json_depth: bounded_budget(max_json_depth, 256),
+    max_json_nodes: bounded_budget(max_json_nodes, 1000000),
   }
 }
 
 ///|
-fn positive_budget(value : Int) -> Int {
-  if value < 1 { 1 } else { value }
+fn bounded_budget(value : Int, ceiling : Int) -> Int {
+  if value < 1 { 1 } else if value > ceiling { ceiling } else { value }
 }
 
 ///|
