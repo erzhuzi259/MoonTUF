@@ -17,5 +17,7 @@
 - Added host admission policies, multi-artifact verification, URL planning,
   response metering, diagnostics, synthetic fixtures and runnable examples.
 - Added local tests and continuous-integration configuration.
+- Extended the CI plan with JavaScript backend tests and an offline smoke run
+  after confirming 91/91 local JavaScript tests pass.
 
 No GitHub release or Mooncakes publication has been made.

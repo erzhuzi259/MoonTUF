@@ -28,8 +28,14 @@ jobs:
         run: moon build --target wasm-gc --deny-warn
       - name: Test portable code
         run: moon test --target wasm-gc --deny-warn
+      - name: Test JavaScript backend
+        if: runner.os == 'Linux'
+        run: moon test --target js --deny-warn
       - name: Run offline scenarios
         run: moon run examples/offline
+      - name: Run JavaScript offline scenarios
+        if: runner.os == 'Linux'
+        run: moon run --target js examples/offline
 
   native-linux:
     name: Native MoonBit (Ubuntu)
