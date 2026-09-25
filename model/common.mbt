@@ -18,10 +18,14 @@ pub struct Signature {
 }
 
 ///|
-pub fn Signature::keyid(self : Signature) -> String { self.keyid }
+pub fn Signature::keyid(self : Signature) -> String {
+  self.keyid
+}
 
 ///|
-pub fn Signature::sig(self : Signature) -> String { self.sig }
+pub fn Signature::sig(self : Signature) -> String {
+  self.sig
+}
 
 ///|
 /// A parsed envelope retains raw bytes for hash-chain checks and the signed
@@ -35,10 +39,14 @@ pub struct Envelope {
 }
 
 ///|
-pub fn Envelope::raw(self : Envelope) -> Bytes { self.raw }
+pub fn Envelope::raw(self : Envelope) -> Bytes {
+  self.raw
+}
 
 ///|
-pub fn Envelope::signed(self : Envelope) -> @wire.Value { self.signed }
+pub fn Envelope::signed(self : Envelope) -> @wire.Value {
+  self.signed
+}
 
 ///|
 pub fn Envelope::canonical_signed(self : Envelope) -> Bytes {
@@ -51,7 +59,10 @@ pub fn Envelope::signatures(self : Envelope) -> Array[Signature] {
 }
 
 ///|
-fn object(value : @wire.Value, path : String) -> Result[Array[(String, @wire.Value)], ModelError] {
+fn object(
+  value : @wire.Value,
+  path : String,
+) -> Result[Array[(String, @wire.Value)], ModelError] {
   match value.as_dict() {
     Some(entries) => Ok(entries)
     None => Err(WrongType(path))
@@ -59,7 +70,10 @@ fn object(value : @wire.Value, path : String) -> Result[Array[(String, @wire.Val
 }
 
 ///|
-fn array(value : @wire.Value, path : String) -> Result[Array[@wire.Value], ModelError] {
+fn array(
+  value : @wire.Value,
+  path : String,
+) -> Result[Array[@wire.Value], ModelError] {
   match value.as_list() {
     Some(entries) => Ok(entries)
     None => Err(WrongType(path))
@@ -67,7 +81,11 @@ fn array(value : @wire.Value, path : String) -> Result[Array[@wire.Value], Model
 }
 
 ///|
-fn field(value : @wire.Value, name : String, parent : String) -> Result[@wire.Value, ModelError] {
+fn field(
+  value : @wire.Value,
+  name : String,
+  parent : String,
+) -> Result[@wire.Value, ModelError] {
   match value.field(name) {
     Some(found) => Ok(found)
     None => Err(MissingField(parent + "." + name))
@@ -83,7 +101,11 @@ fn string(value : @wire.Value, path : String) -> Result[String, ModelError] {
 }
 
 ///|
-fn text_field(value : @wire.Value, name : String, parent : String) -> Result[String, ModelError] {
+fn text_field(
+  value : @wire.Value,
+  name : String,
+  parent : String,
+) -> Result[String, ModelError] {
   let child = match field(value, name, parent) {
     Ok(found) => found
     Err(error) => return Err(error)
@@ -108,7 +130,10 @@ fn positive_int(value : @wire.Value, path : String) -> Result[Int, ModelError] {
 }
 
 ///|
-fn nonnegative_int(value : @wire.Value, path : String) -> Result[Int, ModelError] {
+fn nonnegative_int(
+  value : @wire.Value,
+  path : String,
+) -> Result[Int, ModelError] {
   let lexeme = match value.as_integer() {
     Some(number) => number
     None => return Err(WrongType(path))
@@ -127,7 +152,10 @@ fn nonnegative_int(value : @wire.Value, path : String) -> Result[Int, ModelError
 /// Target-file sizes can exceed the addressable size of one in-memory Bytes
 /// value. Streaming verification therefore retains them as signed 64-bit
 /// integers, while metadata document sizes stay bounded Int values.
-fn nonnegative_int64(value : @wire.Value, path : String) -> Result[Int64, ModelError] {
+fn nonnegative_int64(
+  value : @wire.Value,
+  path : String,
+) -> Result[Int64, ModelError] {
   let lexeme = match value.as_integer() {
     Some(number) => number
     None => return Err(WrongType(path))
@@ -143,7 +171,11 @@ fn nonnegative_int64(value : @wire.Value, path : String) -> Result[Int64, ModelE
 }
 
 ///|
-fn positive_field(value : @wire.Value, name : String, parent : String) -> Result[Int, ModelError] {
+fn positive_field(
+  value : @wire.Value,
+  name : String,
+  parent : String,
+) -> Result[Int, ModelError] {
   let child = match field(value, name, parent) {
     Ok(found) => found
     Err(error) => return Err(error)
@@ -154,11 +186,17 @@ fn positive_field(value : @wire.Value, name : String, parent : String) -> Result
 ///|
 fn semver_digit(text : String) -> Bool {
   let bytes = @utf8.encode(text)
-  if bytes.length() == 0 { return false }
-  if bytes.length() > 1 && bytes[0].to_int() == 48 { return false }
+  if bytes.length() == 0 {
+    return false
+  }
+  if bytes.length() > 1 && bytes[0].to_int() == 48 {
+    return false
+  }
   for byte in bytes {
     let ch = byte.to_int()
-    if ch < 48 || ch > 57 { return false }
+    if ch < 48 || ch > 57 {
+      return false
+    }
   }
   true
 }
@@ -171,8 +209,14 @@ fn spec_version(value : @wire.Value) -> Result[String, ModelError] {
     Ok(found) => found
     Err(error) => return Err(error)
   }
-  let parts : Array[String] = version.split(".").map(part => part.to_owned()).collect()
-  if parts.length() != 3 || parts[0] != "1" || !semver_digit(parts[1]) || !semver_digit(parts[2]) {
+  let parts : Array[String] = version
+    .split(".")
+    .map(part => part.to_owned())
+    .collect()
+  if parts.length() != 3 ||
+    parts[0] != "1" ||
+    !semver_digit(parts[1]) ||
+    !semver_digit(parts[2]) {
     Err(UnsupportedSpec(version))
   } else {
     Ok(version)
@@ -188,19 +232,30 @@ pub struct Common {
 }
 
 ///|
-pub fn Common::kind(self : Common) -> String { self.kind }
+pub fn Common::kind(self : Common) -> String {
+  self.kind
+}
 
 ///|
-pub fn Common::version(self : Common) -> Int { self.version }
+pub fn Common::version(self : Common) -> Int {
+  self.version
+}
 
 ///|
-pub fn Common::expires(self : Common) -> String { self.expires }
+pub fn Common::expires(self : Common) -> String {
+  self.expires
+}
 
 ///|
-pub fn Common::spec_version(self : Common) -> String { self.spec_version }
+pub fn Common::spec_version(self : Common) -> String {
+  self.spec_version
+}
 
 ///|
-pub fn parse_common(signed : @wire.Value, kind : String) -> Result[Common, ModelError] {
+pub fn parse_common(
+  signed : @wire.Value,
+  kind : String,
+) -> Result[Common, ModelError] {
   let actual_kind = match text_field(signed, "_type", "signed") {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -221,29 +276,38 @@ pub fn parse_common(signed : @wire.Value, kind : String) -> Result[Common, Model
     Err(error) => return Err(error)
   }
   if !valid_utc_time(expires) {
-    return Err(InvalidValue("signed.expires", "expected valid YYYY-MM-DDTHH:MM:SSZ"))
+    return Err(
+      InvalidValue("signed.expires", "expected valid YYYY-MM-DDTHH:MM:SSZ"),
+    )
   }
-  Ok({ kind: actual_kind, spec_version: spec, version, expires })
+  Ok({ kind: actual_kind, spec_version: spec, version, expires, })
 }
 
 ///|
-pub fn parse_envelope(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> Result[Envelope, ModelError] {
+pub fn parse_envelope(
+  raw : Bytes,
+  limits? : @wire.Limits = @wire.limits(),
+) -> Result[Envelope, ModelError] {
   let parsed = match @wire.parse(raw, limits~) {
     Ok(value) => value
     Err(error) => return Err(Wire(error))
   }
-  ignore(match object(parsed, "envelope") {
-    Ok(entries) => entries
-    Err(error) => return Err(error)
-  })
+  ignore(
+    match object(parsed, "envelope") {
+      Ok(entries) => entries
+      Err(error) => return Err(error)
+    },
+  )
   let signed = match field(parsed, "signed", "envelope") {
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  ignore(match object(signed, "envelope.signed") {
-    Ok(entries) => entries
-    Err(error) => return Err(error)
-  })
+  ignore(
+    match object(signed, "envelope.signed") {
+      Ok(entries) => entries
+      Err(error) => return Err(error)
+    },
+  )
   let raw_signatures = match field(parsed, "signatures", "envelope") {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -255,10 +319,12 @@ pub fn parse_envelope(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> R
   let signatures : Array[Signature] = []
   let seen : Array[String] = []
   for item in raw_signatures {
-    ignore(match object(item, "envelope.signatures[]") {
-      Ok(entries) => entries
-      Err(error) => return Err(error)
-    })
+    ignore(
+      match object(item, "envelope.signatures[]") {
+        Ok(entries) => entries
+        Err(error) => return Err(error)
+      },
+    )
     let keyid = match text_field(item, "keyid", "envelope.signatures[]") {
       Ok(value) => value
       Err(error) => return Err(error)
@@ -271,7 +337,7 @@ pub fn parse_envelope(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> R
       return Err(DuplicateItem("envelope.signatures[].keyid=" + keyid))
     }
     seen.push(keyid)
-    signatures.push({ keyid, sig })
+    signatures.push({ keyid, sig, })
   }
-  Ok({ raw, signed, canonical_signed: @wire.canonical(signed), signatures })
+  Ok({ raw, signed, canonical_signed: @wire.canonical(signed), signatures, })
 }

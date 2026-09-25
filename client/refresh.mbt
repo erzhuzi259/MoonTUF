@@ -15,10 +15,14 @@ pub struct AcceptedMetadata {
 }
 
 ///|
-pub fn AcceptedMetadata::name(self : AcceptedMetadata) -> String { self.name }
+pub fn AcceptedMetadata::name(self : AcceptedMetadata) -> String {
+  self.name
+}
 
 ///|
-pub fn AcceptedMetadata::raw(self : AcceptedMetadata) -> Bytes { self.raw }
+pub fn AcceptedMetadata::raw(self : AcceptedMetadata) -> Bytes {
+  self.raw
+}
 
 ///|
 pub struct RefreshOutcome {
@@ -28,13 +32,19 @@ pub struct RefreshOutcome {
 }
 
 ///|
-pub fn RefreshOutcome::client(self : RefreshOutcome) -> Client { self.client }
+pub fn RefreshOutcome::client(self : RefreshOutcome) -> Client {
+  self.client
+}
 
 ///|
-pub fn RefreshOutcome::status(self : RefreshOutcome) -> RefreshStatus { self.status }
+pub fn RefreshOutcome::status(self : RefreshOutcome) -> RefreshStatus {
+  self.status
+}
 
 ///|
-pub fn RefreshOutcome::accepted(self : RefreshOutcome) -> Array[AcceptedMetadata] {
+pub fn RefreshOutcome::accepted(
+  self : RefreshOutcome,
+) -> Array[AcceptedMetadata] {
   self.accepted.copy()
 }
 
@@ -44,7 +54,7 @@ fn outcome(
   status : RefreshStatus,
   accepted : Array[AcceptedMetadata],
 ) -> RefreshOutcome {
-  { client, status, accepted }
+  { client, status, accepted, }
 }
 
 ///|
@@ -68,7 +78,7 @@ pub fn Client::refresh(
       Ok(value) => value
       Err(error) => return outcome(current, Failed(error), accepted)
     }
-    accepted.push({ name: "root.json", raw: candidate })
+    accepted.push({ name: "root.json", raw: candidate, })
   }
   current = match current.finish_root_chain() {
     Ok(value) => value
@@ -76,7 +86,12 @@ pub fn Client::refresh(
   }
   let timestamp_raw = match load("timestamp.json") {
     Some(bytes) => bytes
-    None => return outcome(current, Failed(MetadataUnavailable("timestamp.json")), accepted)
+    None =>
+      return outcome(
+        current,
+        Failed(MetadataUnavailable("timestamp.json")),
+        accepted,
+      )
   }
   let after_timestamp = match current.accept_timestamp(timestamp_raw) {
     Ok(value) => value
@@ -84,32 +99,42 @@ pub fn Client::refresh(
     Err(error) => return outcome(current, Failed(error), accepted)
   }
   current = after_timestamp
-  accepted.push({ name: "timestamp.json", raw: timestamp_raw })
+  accepted.push({ name: "timestamp.json", raw: timestamp_raw, })
   let snapshot_name = match current.snapshot_request_name() {
     Ok(value) => value
     Err(error) => return outcome(current, Failed(error), accepted)
   }
   let snapshot_raw = match load(snapshot_name) {
     Some(bytes) => bytes
-    None => return outcome(current, Failed(MetadataUnavailable(snapshot_name)), accepted)
+    None =>
+      return outcome(
+        current,
+        Failed(MetadataUnavailable(snapshot_name)),
+        accepted,
+      )
   }
   current = match current.accept_snapshot(snapshot_raw) {
     Ok(value) => value
     Err(error) => return outcome(current, Failed(error), accepted)
   }
-  accepted.push({ name: "snapshot.json", raw: snapshot_raw })
+  accepted.push({ name: "snapshot.json", raw: snapshot_raw, })
   let targets_name = match current.targets_request_name() {
     Ok(value) => value
     Err(error) => return outcome(current, Failed(error), accepted)
   }
   let targets_raw = match load(targets_name) {
     Some(bytes) => bytes
-    None => return outcome(current, Failed(MetadataUnavailable(targets_name)), accepted)
+    None =>
+      return outcome(
+        current,
+        Failed(MetadataUnavailable(targets_name)),
+        accepted,
+      )
   }
   current = match current.accept_targets(targets_raw) {
     Ok(value) => value
     Err(error) => return outcome(current, Failed(error), accepted)
   }
-  accepted.push({ name: "targets.json", raw: targets_raw })
+  accepted.push({ name: "targets.json", raw: targets_raw, })
   outcome(current, Complete, accepted)
 }

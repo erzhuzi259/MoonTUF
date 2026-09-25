@@ -1,6 +1,6 @@
 import {
-  "erzhuzi259/moontuf/wire" @wire,
-  "erzhuzi259/moontuf/crypto" @crypto,
-  "moonbitstack/mooncrypt/sign/ed25519" @ed25519,
+  "erzhuzi259/moontuf/wire",
+  "erzhuzi259/moontuf/crypto",
+  "moonbitstack/mooncrypt/sign/ed25519",
   "moonbitlang/core/encoding/utf8",
 }

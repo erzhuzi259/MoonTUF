@@ -30,14 +30,11 @@ test "root rotation rejects skipped versions and expiry at update start" {
   let key = @testkit.signer(3)
   let anchor = @testkit.root(1, key, [key])
   let client = open_trusted_root(anchor, "2026-09-25T00:00:00Z").unwrap()
-  assert_true(client.advance_root(@testkit.root(3, key, [key])) is
-    Err(VersionMismatch(_, _, _)))
-  let expired = @testkit.root(
-    2,
-    key,
-    [key],
-    expires="2026-09-25T00:00:00Z",
+  assert_true(
+    client.advance_root(@testkit.root(3, key, [key]))
+    is Err(VersionMismatch(_, _, _)),
   )
+  let expired = @testkit.root(2, key, [key], expires="2026-09-25T00:00:00Z")
   let intermediate = client.advance_root(expired).unwrap()
   assert_true(intermediate.finish_root_chain() is Err(Expired("root")))
 }
@@ -51,7 +48,8 @@ test "root size and rotation budgets fail closed" {
       anchor,
       "2026-09-25T00:00:00Z",
       budget=budgets(max_root_bytes=10),
-    ) is Err(ResourceLimit(_, _, _)),
+    )
+    is Err(ResourceLimit(_, _, _)),
   )
   let client = open_trusted_root(
     anchor,
@@ -59,5 +57,8 @@ test "root size and rotation budgets fail closed" {
     budget=budgets(max_root_rotations=1),
   ).unwrap()
   let first = client.advance_root(@testkit.root(2, key, [key])).unwrap()
-  assert_true(first.advance_root(@testkit.root(3, key, [key])) is Err(RootRotationLimit(_)))
+  assert_true(
+    first.advance_root(@testkit.root(3, key, [key]))
+    is Err(RootRotationLimit(_)),
+  )
 }

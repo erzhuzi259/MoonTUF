@@ -3,7 +3,10 @@
 /// trusted root and the proposed root must authorize the same signed bytes.
 /// A caller can repeat this step until version N+1 is unavailable, then call
 /// finish_root_chain before attempting timestamp.
-pub fn Client::advance_root(self : Client, candidate_raw : Bytes) -> Result[Client, ClientError] {
+pub fn Client::advance_root(
+  self : Client,
+  candidate_raw : Bytes,
+) -> Result[Client, ClientError] {
   if self.root_rotations >= self.budget.max_root_rotations {
     return Err(RootRotationLimit(self.budget.max_root_rotations))
   }
@@ -11,10 +14,11 @@ pub fn Client::advance_root(self : Client, candidate_raw : Bytes) -> Result[Clie
     Err(error) => return Err(error)
     Ok(_) => ()
   }
-  let candidate = match @model.parse_root(
-    candidate_raw,
-    limits=wire_limits(self.budget.max_root_bytes, self.budget),
-  ) {
+  let candidate = match
+    @model.parse_root(
+      candidate_raw,
+      limits=wire_limits(self.budget.max_root_bytes, self.budget),
+    ) {
     Ok(value) => value
     Err(error) => return Err(Model(error))
   }

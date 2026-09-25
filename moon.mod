@@ -6,7 +6,13 @@ readme = "README.md"
 
 license = "Apache-2.0"
 
-keywords = [ "tuf", "software-update", "metadata", "verification", "supply-chain" ]
+keywords = [
+  "tuf",
+  "software-update",
+  "metadata",
+  "verification",
+  "supply-chain",
+]
 
 preferred_target = "wasm-gc"
 

@@ -33,12 +33,16 @@ test "UTC expiry parser validates Gregorian dates" {
 
 ///|
 test "common metadata refuses unknown spec and invalid expiry" {
-  let malformed = @wire.parse(@utf8.encode(
-    "{\"_type\":\"root\",\"spec_version\":\"2.0.0\",\"version\":1,\"expires\":\"2030-01-01T00:00:00Z\"}",
-  )).unwrap()
+  let malformed = @wire.parse(
+    @utf8.encode(
+      "{\"_type\":\"root\",\"spec_version\":\"2.0.0\",\"version\":1,\"expires\":\"2030-01-01T00:00:00Z\"}",
+    ),
+  ).unwrap()
   assert_true(parse_common(malformed, "root") is Err(UnsupportedSpec(_)))
-  let expired_format = @wire.parse(@utf8.encode(
-    "{\"_type\":\"root\",\"spec_version\":\"1.0.0\",\"version\":1,\"expires\":\"2030-02-30T00:00:00Z\"}",
-  )).unwrap()
+  let expired_format = @wire.parse(
+    @utf8.encode(
+      "{\"_type\":\"root\",\"spec_version\":\"1.0.0\",\"version\":1,\"expires\":\"2030-02-30T00:00:00Z\"}",
+    ),
+  ).unwrap()
   assert_true(parse_common(expired_format, "root") is Err(InvalidValue(_, _)))
 }

@@ -7,7 +7,7 @@ pub(all) enum CryptoError {
   InvalidPublicKeyLength(Int)
   InvalidSignatureLength(Int)
   UnsupportedScheme(String)
-} derive(Debug, Eq, Show)
+} derive(Debug, Eq)
 
 ///|
 fn nibble(byte : Byte) -> Int? {

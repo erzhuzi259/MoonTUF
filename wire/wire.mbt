@@ -43,24 +43,52 @@ pub fn limits(
   max_number_digits? : Int = 80,
 ) -> Limits {
   {
-    max_bytes: if max_bytes < 0 { 0 } else { max_bytes },
-    max_depth: if max_depth < 0 { 0 } else if max_depth > 256 { 256 } else { max_depth },
-    max_nodes: if max_nodes < 0 { 0 } else { max_nodes },
-    max_members: if max_members < 0 { 0 } else { max_members },
-    max_number_digits: if max_number_digits < 1 { 1 } else if max_number_digits > 1000 {
+    max_bytes: if max_bytes < 0 {
+      0
+    } else {
+      max_bytes
+    },
+    max_depth: if max_depth < 0 {
+      0
+    } else if max_depth > 256 {
+      256
+    } else {
+      max_depth
+    },
+    max_nodes: if max_nodes < 0 {
+      0
+    } else {
+      max_nodes
+    },
+    max_members: if max_members < 0 {
+      0
+    } else {
+      max_members
+    },
+    max_number_digits: if max_number_digits < 1 {
+      1
+    } else if max_number_digits > 1000 {
       1000
-    } else { max_number_digits },
+    } else {
+      max_number_digits
+    },
   }
 }
 
 ///|
-pub fn Limits::max_bytes(self : Limits) -> Int { self.max_bytes }
+pub fn Limits::max_bytes(self : Limits) -> Int {
+  self.max_bytes
+}
 
 ///|
-pub fn Limits::max_depth(self : Limits) -> Int { self.max_depth }
+pub fn Limits::max_depth(self : Limits) -> Int {
+  self.max_depth
+}
 
 ///|
-pub fn Limits::max_nodes(self : Limits) -> Int { self.max_nodes }
+pub fn Limits::max_nodes(self : Limits) -> Int {
+  self.max_nodes
+}
 
 ///|
 priv struct Parser {
@@ -127,7 +155,9 @@ fn Parser::read_string(
 }
 
 ///|
-fn digit(ch : Int) -> Bool { ch >= 48 && ch <= 57 }
+fn digit(ch : Int) -> Bool {
+  ch >= 48 && ch <= 57
+}
 
 ///|
 fn Parser::read_integer(
@@ -135,7 +165,9 @@ fn Parser::read_integer(
   start : Int,
 ) -> Result[(Value, Int), WireError] {
   let mut cursor = start
-  if self.at(cursor, 45) { cursor += 1 }
+  if self.at(cursor, 45) {
+    cursor += 1
+  }
   if cursor >= self.data.length() || !digit(self.data[cursor].to_int()) {
     return Err(InvalidJson(cursor, "expected integer digits"))
   }
@@ -321,11 +353,14 @@ fn Parser::array(
 ///|
 /// Parse bounded TUF JSON. Duplicate keys and noninteger numbers are rejected
 /// before any metadata object is allowed to reach signature verification.
-pub fn parse(input : Bytes, limits? : Limits = limits()) -> Result[Value, WireError] {
+pub fn parse(
+  input : Bytes,
+  limits? : Limits = limits(),
+) -> Result[Value, WireError] {
   if input.length() > limits.max_bytes {
     return Err(InputTooLarge(input.length(), limits.max_bytes))
   }
-  let parser = Parser::{ data: input, limits, nodes: 0 }
+  let parser = Parser::{ data: input, limits, nodes: 0, }
   let (parsed, end) = match parser.value(0, 0) {
     Ok(pair) => pair
     Err(error) => return Err(error)
@@ -344,7 +379,9 @@ pub fn Value::field(self : Value, name : String) -> Value? {
     Dict(entries) => {
       for entry in entries {
         let (key, value) = entry
-        if key == name { return Some(value) }
+        if key == name {
+          return Some(value)
+        }
       }
       None
     }
@@ -354,25 +391,40 @@ pub fn Value::field(self : Value, name : String) -> Value? {
 
 ///|
 pub fn Value::as_text(self : Value) -> String? {
-  match self { Text(value) => Some(value); _ => None }
+  match self {
+    Text(value) => Some(value)
+    _ => None
+  }
 }
 
 ///|
 pub fn Value::as_boolean(self : Value) -> Bool? {
-  match self { Boolean(value) => Some(value); _ => None }
+  match self {
+    Boolean(value) => Some(value)
+    _ => None
+  }
 }
 
 ///|
 pub fn Value::as_integer(self : Value) -> String? {
-  match self { Integer(value) => Some(value); _ => None }
+  match self {
+    Integer(value) => Some(value)
+    _ => None
+  }
 }
 
 ///|
 pub fn Value::as_list(self : Value) -> Array[Value]? {
-  match self { List(value) => Some(value); _ => None }
+  match self {
+    List(value) => Some(value)
+    _ => None
+  }
 }
 
 ///|
 pub fn Value::as_dict(self : Value) -> Array[(String, Value)]? {
-  match self { Dict(value) => Some(value); _ => None }
+  match self {
+    Dict(value) => Some(value)
+    _ => None
+  }
 }

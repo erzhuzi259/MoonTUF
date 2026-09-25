@@ -2,7 +2,10 @@
 /// Accept a newer timestamp under the current root. This is the first online
 /// metadata step; it pins the snapshot version and protects later stages from
 /// rollback. The caller should persist the returned raw timestamp atomically.
-pub fn Client::accept_timestamp(self : Client, raw : Bytes) -> Result[Client, ClientError] {
+pub fn Client::accept_timestamp(
+  self : Client,
+  raw : Bytes,
+) -> Result[Client, ClientError] {
   match self.check_root_fresh() {
     Ok(_) => ()
     Err(error) => return Err(error)
@@ -11,10 +14,11 @@ pub fn Client::accept_timestamp(self : Client, raw : Bytes) -> Result[Client, Cl
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  let candidate = match @model.parse_timestamp(
-    raw,
-    limits=wire_limits(self.budget.max_timestamp_bytes, self.budget),
-  ) {
+  let candidate = match
+    @model.parse_timestamp(
+      raw,
+      limits=wire_limits(self.budget.max_timestamp_bytes, self.budget),
+    ) {
     Ok(value) => value
     Err(error) => return Err(Model(error))
   }
@@ -56,7 +60,9 @@ pub fn Client::accept_timestamp(self : Client, raw : Bytes) -> Result[Client, Cl
 }
 
 ///|
-pub fn Client::snapshot_request_name(self : Client) -> Result[String, ClientError] {
+pub fn Client::snapshot_request_name(
+  self : Client,
+) -> Result[String, ClientError] {
   let timestamp = match self.timestamp {
     Some(value) => value
     None => return Err(MissingStage("timestamp"))

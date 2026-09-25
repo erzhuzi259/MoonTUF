@@ -66,12 +66,24 @@ pub fn budgets(
 
 ///|
 fn bounded_budget(value : Int, ceiling : Int) -> Int {
-  if value < 1 { 1 } else if value > ceiling { ceiling } else { value }
+  if value < 1 {
+    1
+  } else if value > ceiling {
+    ceiling
+  } else {
+    value
+  }
 }
 
 ///|
 fn bounded_budget64(value : Int64, ceiling : Int64) -> Int64 {
-  if value < 1L { 1L } else if value > ceiling { ceiling } else { value }
+  if value < 1L {
+    1L
+  } else if value > ceiling {
+    ceiling
+  } else {
+    value
+  }
 }
 
 ///|
@@ -84,7 +96,11 @@ fn wire_limits(max_bytes : Int, budget : Budgets) -> @wire.Limits {
 }
 
 ///|
-fn guard_size(label : String, bytes : Bytes, maximum : Int) -> Result[Unit, ClientError] {
+fn guard_size(
+  label : String,
+  bytes : Bytes,
+  maximum : Int,
+) -> Result[Unit, ClientError] {
   if bytes.length() > maximum {
     Err(ResourceLimit(label, bytes.length(), maximum))
   } else {
@@ -93,7 +109,11 @@ fn guard_size(label : String, bytes : Bytes, maximum : Int) -> Result[Unit, Clie
 }
 
 ///|
-fn guard_target_size(label : String, bytes : Bytes, maximum : Int64) -> Result[Unit, ClientError] {
+fn guard_target_size(
+  label : String,
+  bytes : Bytes,
+  maximum : Int64,
+) -> Result[Unit, ClientError] {
   let size = bytes.length().to_int64()
   if size > maximum {
     Err(TargetResourceLimit(label, size, maximum))
@@ -135,7 +155,9 @@ pub fn Client::targets_version(self : Client) -> Int? {
 }
 
 ///|
-pub fn Client::update_start(self : Client) -> String { self.update_start }
+pub fn Client::update_start(self : Client) -> String {
+  self.update_start
+}
 
 ///|
 pub fn Client::consistent_snapshot(self : Client) -> Bool {
@@ -157,10 +179,11 @@ pub fn open_trusted_root(
     Err(error) => return Err(error)
     Ok(_) => ()
   }
-  let root = match @model.parse_root(
-    trusted_root_raw,
-    limits=wire_limits(budget.max_root_bytes, budget),
-  ) {
+  let root = match
+    @model.parse_root(
+      trusted_root_raw,
+      limits=wire_limits(budget.max_root_bytes, budget),
+    ) {
     Ok(value) => value
     Err(error) => return Err(Model(error))
   }
@@ -191,7 +214,9 @@ pub fn Client::check_root_fresh(self : Client) -> Result[Unit, ClientError] {
 
 ///|
 pub fn Client::ready(self : Client) -> Bool {
-  if self.check_root_fresh() is Err(_) { return false }
+  if self.check_root_fresh() is Err(_) {
+    return false
+  }
   match (self.timestamp, self.snapshot, self.targets) {
     (Some(timestamp), Some(snapshot), Some(targets)) =>
       !@model.expired(timestamp.common().expires(), self.update_start) &&

@@ -8,26 +8,40 @@ pub struct MetaFile {
 }
 
 ///|
-pub fn MetaFile::version(self : MetaFile) -> Int { self.version }
+pub fn MetaFile::version(self : MetaFile) -> Int {
+  self.version
+}
 
 ///|
-pub fn MetaFile::length(self : MetaFile) -> Int? { self.length }
+pub fn MetaFile::length(self : MetaFile) -> Int? {
+  self.length
+}
 
 ///|
-pub fn MetaFile::sha256(self : MetaFile) -> String? { self.sha256 }
+pub fn MetaFile::sha256(self : MetaFile) -> String? {
+  self.sha256
+}
 
 ///|
-fn sha256_field(raw : @wire.Value, path : String) -> Result[String?, ModelError] {
+fn sha256_field(
+  raw : @wire.Value,
+  path : String,
+) -> Result[String?, ModelError] {
   let hashes = match raw.field("hashes") {
     None => return Ok(None)
     Some(value) => value
   }
-  ignore(match object(hashes, path + ".hashes") {
-    Ok(entries) => entries
-    Err(error) => return Err(error)
-  })
+  ignore(
+    match object(hashes, path + ".hashes") {
+      Ok(entries) => entries
+      Err(error) => return Err(error)
+    },
+  )
   let digest = match hashes.field("sha256") {
-    None => return Err(InvalidValue(path + ".hashes", "SHA-256 is required by this profile"))
+    None =>
+      return Err(
+        InvalidValue(path + ".hashes", "SHA-256 is required by this profile"),
+      )
     Some(value) =>
       match string(value, path + ".hashes.sha256") {
         Ok(text) => text
@@ -36,7 +50,8 @@ fn sha256_field(raw : @wire.Value, path : String) -> Result[String?, ModelError]
   }
   let decoded = match @crypto.decode_hex(digest) {
     Ok(bytes) => bytes
-    Err(_) => return Err(InvalidValue(path + ".hashes.sha256", "invalid hex digest"))
+    Err(_) =>
+      return Err(InvalidValue(path + ".hashes.sha256", "invalid hex digest"))
   }
   if decoded.length() != 32 {
     return Err(InvalidValue(path + ".hashes.sha256", "expected 32-byte digest"))
@@ -46,10 +61,12 @@ fn sha256_field(raw : @wire.Value, path : String) -> Result[String?, ModelError]
 
 ///|
 fn meta_file(raw : @wire.Value, path : String) -> Result[MetaFile, ModelError] {
-  ignore(match object(raw, path) {
-    Ok(entries) => entries
-    Err(error) => return Err(error)
-  })
+  ignore(
+    match object(raw, path) {
+      Ok(entries) => entries
+      Err(error) => return Err(error)
+    },
+  )
   let version = match positive_field(raw, "version", path) {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -66,7 +83,7 @@ fn meta_file(raw : @wire.Value, path : String) -> Result[MetaFile, ModelError] {
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  Ok({ version, length, sha256 })
+  Ok({ version, length, sha256, })
 }
 
 ///|
@@ -77,16 +94,25 @@ pub struct Timestamp {
 }
 
 ///|
-pub fn Timestamp::envelope(self : Timestamp) -> Envelope { self.envelope }
+pub fn Timestamp::envelope(self : Timestamp) -> Envelope {
+  self.envelope
+}
 
 ///|
-pub fn Timestamp::common(self : Timestamp) -> Common { self.common }
+pub fn Timestamp::common(self : Timestamp) -> Common {
+  self.common
+}
 
 ///|
-pub fn Timestamp::snapshot(self : Timestamp) -> MetaFile { self.snapshot }
+pub fn Timestamp::snapshot(self : Timestamp) -> MetaFile {
+  self.snapshot
+}
 
 ///|
-pub fn parse_timestamp(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> Result[Timestamp, ModelError] {
+pub fn parse_timestamp(
+  raw : Bytes,
+  limits? : @wire.Limits = @wire.limits(),
+) -> Result[Timestamp, ModelError] {
   let envelope = match parse_envelope(raw, limits~) {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -105,7 +131,9 @@ pub fn parse_timestamp(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> 
     Err(error) => return Err(error)
   }
   if entries.length() != 1 {
-    return Err(InvalidValue("signed.meta", "timestamp may describe only snapshot.json"))
+    return Err(
+      InvalidValue("signed.meta", "timestamp may describe only snapshot.json"),
+    )
   }
   let snapshot = match field(meta, "snapshot.json", "signed.meta") {
     Ok(value) => value
@@ -115,7 +143,7 @@ pub fn parse_timestamp(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> 
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  Ok({ envelope, common, snapshot })
+  Ok({ envelope, common, snapshot, })
 }
 
 ///|
@@ -126,25 +154,36 @@ pub struct Snapshot {
 }
 
 ///|
-pub fn Snapshot::envelope(self : Snapshot) -> Envelope { self.envelope }
+pub fn Snapshot::envelope(self : Snapshot) -> Envelope {
+  self.envelope
+}
 
 ///|
-pub fn Snapshot::common(self : Snapshot) -> Common { self.common }
+pub fn Snapshot::common(self : Snapshot) -> Common {
+  self.common
+}
 
 ///|
-pub fn Snapshot::metafiles(self : Snapshot) -> Array[(String, MetaFile)] { self.meta.copy() }
+pub fn Snapshot::metafiles(self : Snapshot) -> Array[(String, MetaFile)] {
+  self.meta.copy()
+}
 
 ///|
 pub fn Snapshot::metafile(self : Snapshot, name : String) -> MetaFile? {
   for entry in self.meta {
     let (candidate, record) = entry
-    if candidate == name { return Some(record) }
+    if candidate == name {
+      return Some(record)
+    }
   }
   None
 }
 
 ///|
-pub fn parse_snapshot(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> Result[Snapshot, ModelError] {
+pub fn parse_snapshot(
+  raw : Bytes,
+  limits? : @wire.Limits = @wire.limits(),
+) -> Result[Snapshot, ModelError] {
   let envelope = match parse_envelope(raw, limits~) {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -169,7 +208,9 @@ pub fn parse_snapshot(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> R
     if !safe_metadata_name(name) {
       return Err(InvalidValue("signed.meta." + name, "unsafe metadata path"))
     }
-    if name == "targets.json" { has_targets = true }
+    if name == "targets.json" {
+      has_targets = true
+    }
     let record = match meta_file(raw_child, "signed.meta." + name) {
       Ok(value) => value
       Err(error) => return Err(error)
@@ -179,7 +220,7 @@ pub fn parse_snapshot(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> R
   if !has_targets {
     return Err(MissingField("signed.meta.targets.json"))
   }
-  Ok({ envelope, common, meta })
+  Ok({ envelope, common, meta, })
 }
 
 ///|

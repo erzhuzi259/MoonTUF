@@ -1,0 +1,7 @@
+import {
+  "erzhuzi259/moontuf/client" @client,
+  "erzhuzi259/moontuf/model" @model,
+  "erzhuzi259/moontuf/trust" @trust,
+  "erzhuzi259/moontuf/wire" @wire,
+  "moonbitlang/core/json",
+}

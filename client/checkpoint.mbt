@@ -11,9 +11,13 @@ fn append_u32(output : Array[Byte], value : Int) -> Unit {
 
 ///|
 fn read_u32(input : Bytes, start : Int) -> Int? {
-  if start < 0 || start > input.length() - 4 { return None }
+  if start < 0 || start > input.length() - 4 {
+    return None
+  }
   let a = input[start].to_int()
-  if a > 127 { return None }
+  if a > 127 {
+    return None
+  }
   Some(
     (a << 24) |
     (input[start + 1].to_int() << 16) |
@@ -25,7 +29,9 @@ fn read_u32(input : Bytes, start : Int) -> Int? {
 ///|
 fn append_bytes(output : Array[Byte], input : Bytes) -> Unit {
   append_u32(output, input.length())
-  for byte in input { output.push(byte) }
+  for byte in input {
+    output.push(byte)
+  }
 }
 
 ///|
@@ -35,7 +41,9 @@ fn read_bytes(input : Bytes, cursor : Int, body_end : Int) -> (Bytes, Int)? {
     None => return None
   }
   let start = cursor + 4
-  if start > body_end || length > body_end - start { return None }
+  if start > body_end || length > body_end - start {
+    return None
+  }
   let end = start + length
   Some((Bytes::from_array(input[start:end].to_array()), end))
 }
@@ -60,13 +68,17 @@ pub fn Client::checkpoint(self : Client) -> Result[Bytes, ClientError] {
     None => return Err(MissingStage("targets"))
   }
   let output : Array[Byte] = []
-  for byte in @utf8.encode("MTUF1") { output.push(byte) }
+  for byte in @utf8.encode("MTUF1") {
+    output.push(byte)
+  }
   append_bytes(output, self.root.envelope().raw())
   append_bytes(output, timestamp.envelope().raw())
   append_bytes(output, snapshot.envelope().raw())
   append_bytes(output, targets.envelope().raw())
   let digest = @crypto.sha256(Bytes::from_array(output))
-  for byte in digest { output.push(byte) }
+  for byte in digest {
+    output.push(byte)
+  }
   Ok(Bytes::from_array(output))
 }
 
@@ -79,8 +91,13 @@ priv struct CheckpointParts {
 }
 
 ///|
-fn decode_checkpoint(raw : Bytes, budget : Budgets) -> Result[CheckpointParts, ClientError] {
-  let total_maximum = 5 + 4 * 4 + 32 +
+fn decode_checkpoint(
+  raw : Bytes,
+  budget : Budgets,
+) -> Result[CheckpointParts, ClientError] {
+  let total_maximum = 5 +
+    4 * 4 +
+    32 +
     budget.max_root_bytes +
     budget.max_timestamp_bytes +
     budget.max_snapshot_bytes +
@@ -98,9 +115,7 @@ fn decode_checkpoint(raw : Bytes, budget : Budgets) -> Result[CheckpointParts, C
     }
   }
   let body_end = raw.length() - 32
-  let calculated = @crypto.sha256(
-    Bytes::from_array(raw[0:body_end].to_array()),
-  )
+  let calculated = @crypto.sha256(Bytes::from_array(raw[0:body_end].to_array()))
   let expected = Bytes::from_array(raw[body_end:raw.length()].to_array())
   if !@spec.eq(calculated[:], expected[:]) {
     return Err(CheckpointMalformed("checksum mismatch"))
@@ -140,7 +155,7 @@ fn decode_checkpoint(raw : Bytes, budget : Budgets) -> Result[CheckpointParts, C
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  Ok({ root, timestamp, snapshot, targets })
+  Ok({ root, timestamp, snapshot, targets, })
 }
 
 ///|
@@ -161,34 +176,39 @@ pub fn restore_checkpoint(
   if !@spec.eq(parts.root[:], trusted_root_raw[:]) {
     return Err(CheckpointRootMismatch)
   }
-  let anchor = match open_trusted_root(trusted_root_raw, update_start, budget~) {
+  let anchor = match
+    open_trusted_root(trusted_root_raw, update_start, budget~) {
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  let timestamp = match @model.parse_timestamp(
-    parts.timestamp,
-    limits=wire_limits(budget.max_timestamp_bytes, budget),
-  ) {
+  let timestamp = match
+    @model.parse_timestamp(
+      parts.timestamp,
+      limits=wire_limits(budget.max_timestamp_bytes, budget),
+    ) {
     Ok(value) => value
     Err(error) => return Err(Model(error))
   }
-  match @trust.verify_top_level(anchor.root, "timestamp", timestamp.envelope()) {
+  match
+    @trust.verify_top_level(anchor.root, "timestamp", timestamp.envelope()) {
     Ok(_) => ()
     Err(error) => return Err(Trust(error))
   }
-  match check_metafile(
-    "snapshot",
-    parts.snapshot,
-    timestamp.snapshot(),
-    budget.max_snapshot_bytes,
-  ) {
+  match
+    check_metafile(
+      "snapshot",
+      parts.snapshot,
+      timestamp.snapshot(),
+      budget.max_snapshot_bytes,
+    ) {
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  let snapshot = match @model.parse_snapshot(
-    parts.snapshot,
-    limits=wire_limits(budget.max_snapshot_bytes, budget),
-  ) {
+  let snapshot = match
+    @model.parse_snapshot(
+      parts.snapshot,
+      limits=wire_limits(budget.max_snapshot_bytes, budget),
+    ) {
     Ok(value) => value
     Err(error) => return Err(Model(error))
   }
@@ -198,29 +218,33 @@ pub fn restore_checkpoint(
   }
   let expected_snapshot = timestamp.snapshot().version()
   if snapshot.common().version() != expected_snapshot {
-    return Err(VersionMismatch(
-      "snapshot",
-      expected_snapshot,
-      snapshot.common().version(),
-    ))
+    return Err(
+      VersionMismatch(
+        "snapshot",
+        expected_snapshot,
+        snapshot.common().version(),
+      ),
+    )
   }
   let target_pin = match snapshot.metafile("targets.json") {
     Some(value) => value
     None => return Err(MissingDescriptor("targets.json"))
   }
-  match check_metafile(
-    "targets",
-    parts.targets,
-    target_pin,
-    budget.max_targets_bytes,
-  ) {
+  match
+    check_metafile(
+      "targets",
+      parts.targets,
+      target_pin,
+      budget.max_targets_bytes,
+    ) {
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  let targets = match @model.parse_targets(
-    parts.targets,
-    limits=wire_limits(budget.max_targets_bytes, budget),
-  ) {
+  let targets = match
+    @model.parse_targets(
+      parts.targets,
+      limits=wire_limits(budget.max_targets_bytes, budget),
+    ) {
     Ok(value) => value
     Err(error) => return Err(Model(error))
   }
@@ -229,11 +253,13 @@ pub fn restore_checkpoint(
     Err(error) => return Err(Trust(error))
   }
   if targets.common().version() != target_pin.version() {
-    return Err(VersionMismatch(
-      "targets",
-      target_pin.version(),
-      targets.common().version(),
-    ))
+    return Err(
+      VersionMismatch(
+        "targets",
+        target_pin.version(),
+        targets.common().version(),
+      ),
+    )
   }
   Ok({
     root: anchor.root,

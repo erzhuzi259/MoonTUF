@@ -1,5 +1,9 @@
 ///|
-fn timestamp_fixture(version : Int, snapshot_version : Int, key : @testkit.Signer) -> Bytes {
+fn timestamp_fixture(
+  version : Int,
+  snapshot_version : Int,
+  key : @testkit.Signer,
+) -> Bytes {
   let artifact = @utf8.encode("abc")
   let targets = @testkit.targets(1, "apps/demo.bin", artifact, key)
   let snapshot = @testkit.snapshot(snapshot_version, 1, targets, key)
@@ -24,7 +28,9 @@ test "timestamp signature, expiry and pinned snapshot are enforced" {
     key,
     expires="2026-09-25T00:00:00Z",
   )
-  assert_true(updated.accept_timestamp(expired_timestamp) is Err(Expired("timestamp")))
+  assert_true(
+    updated.accept_timestamp(expired_timestamp) is Err(Expired("timestamp")),
+  )
 }
 
 ///|
@@ -35,12 +41,18 @@ test "timestamp rejects same version and snapshot reference rollback" {
     "2026-09-25T00:00:00Z",
   ).unwrap()
   let first = client.accept_timestamp(timestamp_fixture(2, 3, key)).unwrap()
-  assert_true(first.accept_timestamp(timestamp_fixture(2, 3, key)) is
-    Err(Unchanged("timestamp", 2)))
-  assert_true(first.accept_timestamp(timestamp_fixture(3, 2, key)) is
-    Err(Rollback("timestamp.snapshot", _, _)))
-  assert_true(first.accept_timestamp(timestamp_fixture(1, 4, key)) is
-    Err(Rollback("timestamp", _, _)))
+  assert_true(
+    first.accept_timestamp(timestamp_fixture(2, 3, key))
+    is Err(Unchanged("timestamp", 2)),
+  )
+  assert_true(
+    first.accept_timestamp(timestamp_fixture(3, 2, key))
+    is Err(Rollback("timestamp.snapshot", _, _)),
+  )
+  assert_true(
+    first.accept_timestamp(timestamp_fixture(1, 4, key))
+    is Err(Rollback("timestamp", _, _)),
+  )
 }
 
 ///|
@@ -51,5 +63,7 @@ test "timestamp refuses an unsigned candidate" {
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
-  assert_true(client.accept_timestamp(timestamp_fixture(1, 1, other)) is Err(Trust(_)))
+  assert_true(
+    client.accept_timestamp(timestamp_fixture(1, 1, other)) is Err(Trust(_)),
+  )
 }

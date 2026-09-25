@@ -18,10 +18,14 @@ test "checkpoint detects corruption and truncation" {
   let damaged = encoded.to_array()
   damaged[damaged.length() - 1] = 0
   let root = @testkit.root(1, key, [key])
-  assert_true(restore_checkpoint(Bytes::from_array(damaged), root, "2026-09-26T00:00:00Z") is
-    Err(CheckpointMalformed(_)))
-  assert_true(restore_checkpoint(@utf8.encode("MTUF1"), root, "2026-09-26T00:00:00Z") is
-    Err(CheckpointMalformed(_)))
+  assert_true(
+    restore_checkpoint(Bytes::from_array(damaged), root, "2026-09-26T00:00:00Z")
+    is Err(CheckpointMalformed(_)),
+  )
+  assert_true(
+    restore_checkpoint(@utf8.encode("MTUF1"), root, "2026-09-26T00:00:00Z")
+    is Err(CheckpointMalformed(_)),
+  )
 }
 
 ///|
@@ -52,6 +56,8 @@ test "checkpoint cannot replace out-of-band root of trust" {
   let client = complete_chain(key, "app.bin", @utf8.encode("abc"))
   let encoded = client.checkpoint().unwrap()
   let wrong_root = @testkit.root(1, other, [other])
-  assert_true(restore_checkpoint(encoded, wrong_root, "2026-09-26T00:00:00Z") is
-    Err(CheckpointRootMismatch))
+  assert_true(
+    restore_checkpoint(encoded, wrong_root, "2026-09-26T00:00:00Z")
+    is Err(CheckpointRootMismatch),
+  )
 }

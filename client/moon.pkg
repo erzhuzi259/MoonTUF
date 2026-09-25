@@ -1,13 +1,13 @@
 import {
-  "erzhuzi259/moontuf/model" @model,
-  "erzhuzi259/moontuf/trust" @trust,
-  "erzhuzi259/moontuf/wire" @wire,
-  "erzhuzi259/moontuf/crypto" @crypto,
-  "moonbitstack/mooncrypt/hash/sha2" @sha2,
-  "moonbitstack/mooncrypt/spec" @spec,
+  "erzhuzi259/moontuf/model",
+  "erzhuzi259/moontuf/trust",
+  "erzhuzi259/moontuf/wire",
+  "erzhuzi259/moontuf/crypto",
+  "moonbitstack/mooncrypt/hash/sha2",
+  "moonbitstack/mooncrypt/spec",
   "moonbitlang/core/encoding/utf8",
 }
 
 import {
-  "erzhuzi259/moontuf/testkit" @testkit,
+  "erzhuzi259/moontuf/testkit",
 } for "test"

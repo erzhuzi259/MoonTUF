@@ -8,9 +8,14 @@ pub(all) enum TrustError {
 } derive(Debug)
 
 ///|
-fn find_key(keys : Array[@model.PublicKey], keyid : String) -> @model.PublicKey? {
+fn find_key(
+  keys : Array[@model.PublicKey],
+  keyid : String,
+) -> @model.PublicKey? {
   for key in keys {
-    if key.keyid() == keyid { return Some(key) }
+    if key.keyid() == keyid {
+      return Some(key)
+    }
   }
   None
 }
@@ -33,21 +38,22 @@ pub fn verify_threshold(
   let seen : Array[String] = []
   for signature in envelope.signatures() {
     let id = signature.keyid()
-    if !keyids.contains(id) || seen.contains(id) { continue }
+    if !keyids.contains(id) || seen.contains(id) {
+      continue
+    }
     let key = match find_key(keys, id) {
       Some(value) => value
       None => return Err(UnsupportedKey(id))
     }
-    let verified = match @crypto.verify_ed25519(
-      key.public_hex(),
-      signed,
-      signature.sig(),
-    ) {
+    let verified = match
+      @crypto.verify_ed25519(key.public_hex(), signed, signature.sig()) {
       Ok(value) => value
       Err(_) => return Err(MalformedSignature(id))
     }
     seen.push(id)
-    if verified { valid += 1 }
+    if verified {
+      valid += 1
+    }
   }
   if valid < threshold {
     Err(ThresholdNotMet(role_name, valid, threshold))

@@ -8,16 +8,24 @@ pub struct VerifiedTarget {
 }
 
 ///|
-pub fn VerifiedTarget::path(self : VerifiedTarget) -> String { self.path }
+pub fn VerifiedTarget::path(self : VerifiedTarget) -> String {
+  self.path
+}
 
 ///|
-pub fn VerifiedTarget::bytes(self : VerifiedTarget) -> Bytes { self.bytes }
+pub fn VerifiedTarget::bytes(self : VerifiedTarget) -> Bytes {
+  self.bytes
+}
 
 ///|
-pub fn VerifiedTarget::sha256(self : VerifiedTarget) -> String { self.sha256 }
+pub fn VerifiedTarget::sha256(self : VerifiedTarget) -> String {
+  self.sha256
+}
 
 ///|
-pub fn VerifiedTarget::length(self : VerifiedTarget) -> Int64 { self.bytes.length().to_int64() }
+pub fn VerifiedTarget::length(self : VerifiedTarget) -> Int64 {
+  self.bytes.length().to_int64()
+}
 
 ///|
 /// Verify exact target length and SHA-256 before returning a VerifiedTarget.
@@ -31,21 +39,20 @@ pub fn Client::verify_top_level_target(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  match guard_target_size("target:" + path, candidate, self.budget.max_target_bytes) {
+  match
+    guard_target_size("target:" + path, candidate, self.budget.max_target_bytes) {
     Ok(_) => ()
     Err(error) => return Err(error)
   }
   if candidate.length().to_int64() != descriptor.length() {
-    return Err(LengthMismatch(path, descriptor.length(), candidate.length().to_int64()))
+    return Err(
+      LengthMismatch(path, descriptor.length(), candidate.length().to_int64()),
+    )
   }
   if !@crypto.matches_sha256(candidate, descriptor.sha256()) {
     return Err(HashMismatch(path))
   }
-  Ok({
-    path,
-    bytes: candidate,
-    sha256: descriptor.sha256(),
-  })
+  Ok({ path, bytes: candidate, sha256: descriptor.sha256(), })
 }
 
 ///|
@@ -62,7 +69,10 @@ pub fn Client::top_level_target_request_name(
   if !self.root.consistent_snapshot() {
     return Ok(path)
   }
-  let parts : Array[String] = path.split("/").map(part => part.to_owned()).collect()
+  let parts : Array[String] = path
+    .split("/")
+    .map(part => part.to_owned())
+    .collect()
   let basename = parts[parts.length() - 1]
   let mut result = descriptor.sha256() + "." + basename
   let mut index = parts.length() - 2

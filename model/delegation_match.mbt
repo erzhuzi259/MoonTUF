@@ -5,7 +5,9 @@
 pub fn path_pattern_matches(pattern : String, path : String) -> Bool {
   let p = @utf8.encode(pattern)
   let t = @utf8.encode(path)
-  if p.length() > 1024 || t.length() > 4096 { return false }
+  if p.length() > 1024 || t.length() > 4096 {
+    return false
+  }
   let mut previous = FixedArray::make(t.length() + 1, false)
   previous[0] = true
   for i in 0..<p.length() {
@@ -35,14 +37,18 @@ pub fn path_pattern_matches(pattern : String, path : String) -> Bool {
 pub fn DelegatedRole::matches_path(self : DelegatedRole, path : String) -> Bool {
   if self.paths is Some(patterns) {
     for pattern in patterns {
-      if path_pattern_matches(pattern, path) { return true }
+      if path_pattern_matches(pattern, path) {
+        return true
+      }
     }
     return false
   }
   if self.path_hash_prefixes is Some(prefixes) {
     let digest = @crypto.sha256_hex(@utf8.encode(path))
     for prefix in prefixes {
-      if digest.has_prefix(prefix) { return true }
+      if digest.has_prefix(prefix) {
+        return true
+      }
     }
   }
   false

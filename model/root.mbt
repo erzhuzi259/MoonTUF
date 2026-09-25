@@ -5,10 +5,14 @@ pub struct PublicKey {
 }
 
 ///|
-pub fn PublicKey::keyid(self : PublicKey) -> String { self.keyid }
+pub fn PublicKey::keyid(self : PublicKey) -> String {
+  self.keyid
+}
 
 ///|
-pub fn PublicKey::public_hex(self : PublicKey) -> String { self.public_hex }
+pub fn PublicKey::public_hex(self : PublicKey) -> String {
+  self.public_hex
+}
 
 ///|
 pub struct RoleKeys {
@@ -17,10 +21,14 @@ pub struct RoleKeys {
 }
 
 ///|
-pub fn RoleKeys::keyids(self : RoleKeys) -> Array[String] { self.keyids.copy() }
+pub fn RoleKeys::keyids(self : RoleKeys) -> Array[String] {
+  self.keyids.copy()
+}
 
 ///|
-pub fn RoleKeys::threshold(self : RoleKeys) -> Int { self.threshold }
+pub fn RoleKeys::threshold(self : RoleKeys) -> Int {
+  self.threshold
+}
 
 ///|
 pub struct Root {
@@ -32,22 +40,32 @@ pub struct Root {
 }
 
 ///|
-pub fn Root::envelope(self : Root) -> Envelope { self.envelope }
+pub fn Root::envelope(self : Root) -> Envelope {
+  self.envelope
+}
 
 ///|
-pub fn Root::common(self : Root) -> Common { self.common }
+pub fn Root::common(self : Root) -> Common {
+  self.common
+}
 
 ///|
-pub fn Root::consistent_snapshot(self : Root) -> Bool { self.consistent_snapshot }
+pub fn Root::consistent_snapshot(self : Root) -> Bool {
+  self.consistent_snapshot
+}
 
 ///|
-pub fn Root::keys(self : Root) -> Array[PublicKey] { self.keys.copy() }
+pub fn Root::keys(self : Root) -> Array[PublicKey] {
+  self.keys.copy()
+}
 
 ///|
 pub fn Root::role(self : Root, name : String) -> RoleKeys? {
   for entry in self.roles {
     let (candidate, role) = entry
-    if candidate == name { return Some(role) }
+    if candidate == name {
+      return Some(role)
+    }
   }
   None
 }
@@ -55,17 +73,21 @@ pub fn Root::role(self : Root, name : String) -> RoleKeys? {
 ///|
 pub fn Root::key(self : Root, keyid : String) -> PublicKey? {
   for key in self.keys {
-    if key.keyid == keyid { return Some(key) }
+    if key.keyid == keyid {
+      return Some(key)
+    }
   }
   None
 }
 
 ///|
 fn read_key(keyid : String, raw : @wire.Value) -> Result[PublicKey, ModelError] {
-  ignore(match object(raw, "signed.keys." + keyid) {
-    Ok(value) => value
-    Err(error) => return Err(error)
-  })
+  ignore(
+    match object(raw, "signed.keys." + keyid) {
+      Ok(value) => value
+      Err(error) => return Err(error)
+    },
+  )
   let keytype = match text_field(raw, "keytype", "signed.keys." + keyid) {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -75,36 +97,53 @@ fn read_key(keyid : String, raw : @wire.Value) -> Result[PublicKey, ModelError] 
     Err(error) => return Err(error)
   }
   if keytype != "ed25519" || scheme != "ed25519" {
-    return Err(InvalidValue("signed.keys." + keyid, "unsupported key type or scheme"))
+    return Err(
+      InvalidValue("signed.keys." + keyid, "unsupported key type or scheme"),
+    )
   }
   let keyval = match field(raw, "keyval", "signed.keys." + keyid) {
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  let public_hex = match text_field(keyval, "public", "signed.keys." + keyid + ".keyval") {
+  let public_hex = match
+    text_field(keyval, "public", "signed.keys." + keyid + ".keyval") {
     Ok(value) => value
     Err(error) => return Err(error)
   }
   let decoded = match @crypto.decode_hex(public_hex) {
     Ok(value) => value
-    Err(_) => return Err(InvalidValue("signed.keys." + keyid + ".keyval.public", "invalid hex"))
+    Err(_) =>
+      return Err(
+        InvalidValue("signed.keys." + keyid + ".keyval.public", "invalid hex"),
+      )
   }
   if decoded.length() != 32 {
-    return Err(InvalidValue("signed.keys." + keyid + ".keyval.public", "Ed25519 key must have 32 bytes"))
+    return Err(
+      InvalidValue(
+        "signed.keys." + keyid + ".keyval.public",
+        "Ed25519 key must have 32 bytes",
+      ),
+    )
   }
   let calculated = @crypto.sha256_hex(@wire.canonical(raw))
   if calculated != keyid {
     return Err(InvalidKeyId(keyid))
   }
-  Ok({ keyid, public_hex })
+  Ok({ keyid, public_hex, })
 }
 
 ///|
-fn read_role(name : String, raw : @wire.Value, keys : Array[PublicKey]) -> Result[RoleKeys, ModelError] {
-  ignore(match object(raw, "signed.roles." + name) {
-    Ok(value) => value
-    Err(error) => return Err(error)
-  })
+fn read_role(
+  name : String,
+  raw : @wire.Value,
+  keys : Array[PublicKey],
+) -> Result[RoleKeys, ModelError] {
+  ignore(
+    match object(raw, "signed.roles." + name) {
+      Ok(value) => value
+      Err(error) => return Err(error)
+    },
+  )
   let ids_value = match field(raw, "keyids", "signed.roles." + name) {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -124,28 +163,42 @@ fn read_role(name : String, raw : @wire.Value, keys : Array[PublicKey]) -> Resul
     }
     let mut found = false
     for key in keys {
-      if key.keyid == id { found = true; break }
+      if key.keyid == id {
+        found = true
+        break
+      }
     }
     if !found {
-      return Err(InvalidValue("signed.roles." + name, "missing declared key " + id))
+      return Err(
+        InvalidValue("signed.roles." + name, "missing declared key " + id),
+      )
     }
     keyids.push(id)
   }
-  let threshold = match positive_field(raw, "threshold", "signed.roles." + name) {
+  let threshold = match
+    positive_field(raw, "threshold", "signed.roles." + name) {
     Ok(value) => value
     Err(error) => return Err(error)
   }
   if threshold > keyids.length() {
-    return Err(InvalidValue("signed.roles." + name + ".threshold", "larger than distinct key count"))
+    return Err(
+      InvalidValue(
+        "signed.roles." + name + ".threshold",
+        "larger than distinct key count",
+      ),
+    )
   }
-  Ok({ keyids, threshold })
+  Ok({ keyids, threshold, })
 }
 
 ///|
 /// Parse a root document but do not trust it yet. The client must verify its
 /// signatures against an existing anchor (and, during rotation, against the
 /// candidate root itself) before committing it.
-pub fn parse_root(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> Result[Root, ModelError] {
+pub fn parse_root(
+  raw : Bytes,
+  limits? : @wire.Limits = @wire.limits(),
+) -> Result[Root, ModelError] {
   let envelope = match parse_envelope(raw, limits~) {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -201,9 +254,14 @@ pub fn parse_root(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> Resul
     let mut present = false
     for entry in roles {
       let (name, _) = entry
-      if name == required { present = true; break }
+      if name == required {
+        present = true
+        break
+      }
     }
-    if !present { return Err(MissingField("signed.roles." + required)) }
+    if !present {
+      return Err(MissingField("signed.roles." + required))
+    }
   }
-  Ok({ envelope, common, consistent_snapshot, keys, roles })
+  Ok({ envelope, common, consistent_snapshot, keys, roles, })
 }

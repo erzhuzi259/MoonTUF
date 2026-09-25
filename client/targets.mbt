@@ -1,7 +1,10 @@
 ///|
 /// Accept top-level targets metadata only after the trusted snapshot pins its
 /// raw bytes and version. This step does not download or install target files.
-pub fn Client::accept_targets(self : Client, raw : Bytes) -> Result[Client, ClientError] {
+pub fn Client::accept_targets(
+  self : Client,
+  raw : Bytes,
+) -> Result[Client, ClientError] {
   let snapshot = match self.snapshot {
     Some(value) => value
     None => return Err(MissingStage("snapshot"))
@@ -10,19 +13,16 @@ pub fn Client::accept_targets(self : Client, raw : Bytes) -> Result[Client, Clie
     Some(value) => value
     None => return Err(MissingDescriptor("targets.json"))
   }
-  match check_metafile(
-    "targets",
-    raw,
-    descriptor,
-    self.budget.max_targets_bytes,
-  ) {
+  match
+    check_metafile("targets", raw, descriptor, self.budget.max_targets_bytes) {
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  let candidate = match @model.parse_targets(
-    raw,
-    limits=wire_limits(self.budget.max_targets_bytes, self.budget),
-  ) {
+  let candidate = match
+    @model.parse_targets(
+      raw,
+      limits=wire_limits(self.budget.max_targets_bytes, self.budget),
+    ) {
     Ok(value) => value
     Err(error) => return Err(Model(error))
   }

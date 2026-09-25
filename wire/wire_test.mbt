@@ -3,7 +3,10 @@ test "signed JSON keeps exact integer spelling and decoded object key" {
   let parsed = parse(@utf8.encode("{\"z\":9007199254740993,\"a\":\"ok\"}"))
   match parsed {
     Ok(value) => {
-      assert_eq(value.field("z").unwrap().as_integer().unwrap(), "9007199254740993")
+      assert_eq(
+        value.field("z").unwrap().as_integer().unwrap(),
+        "9007199254740993",
+      )
       assert_eq(value.field("a").unwrap().as_text().unwrap(), "ok")
     }
     Err(_) => abort("valid TUF JSON was rejected")
@@ -30,16 +33,16 @@ test "noninteger and ambiguous integers are rejected" {
 ///|
 test "resource budgets apply to bytes, depth and nodes" {
   assert_true(
-    parse(@utf8.encode("[1]"), limits=limits(max_bytes=2)) is
-    Err(InputTooLarge(_, _)),
+    parse(@utf8.encode("[1]"), limits=limits(max_bytes=2))
+    is Err(InputTooLarge(_, _)),
   )
   assert_true(
-    parse(@utf8.encode("[[1]]"), limits=limits(max_depth=1)) is
-    Err(NestingTooDeep(_)),
+    parse(@utf8.encode("[[1]]"), limits=limits(max_depth=1))
+    is Err(NestingTooDeep(_)),
   )
   assert_true(
-    parse(@utf8.encode("[1,2]"), limits=limits(max_nodes=2)) is
-    Err(TooManyNodes(_)),
+    parse(@utf8.encode("[1,2]"), limits=limits(max_nodes=2))
+    is Err(TooManyNodes(_)),
   )
 }
 

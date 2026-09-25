@@ -37,12 +37,19 @@ test "streaming verifier enforces total target budget" {
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
   let client = open_trusted_root(
-    @testkit.root(1, key, [key]),
-    "2026-09-25T00:00:00Z",
-    budget=budgets(max_target_bytes=2),
-  ).unwrap()
-  .accept_timestamp(timestamp).unwrap()
-  .accept_snapshot(snapshot).unwrap()
-  .accept_targets(targets).unwrap()
-  assert_true(client.open_top_level_stream("model.bin") is Err(TargetResourceLimit(_, _, _)))
+      @testkit.root(1, key, [key]),
+      "2026-09-25T00:00:00Z",
+      budget=budgets(max_target_bytes=2),
+    )
+    .unwrap()
+    .accept_timestamp(timestamp)
+    .unwrap()
+    .accept_snapshot(snapshot)
+    .unwrap()
+    .accept_targets(targets)
+    .unwrap()
+  assert_true(
+    client.open_top_level_stream("model.bin")
+    is Err(TargetResourceLimit(_, _, _)),
+  )
 }

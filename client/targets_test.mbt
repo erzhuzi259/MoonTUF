@@ -1,15 +1,20 @@
 ///|
-fn complete_chain(key : @testkit.Signer, path : String, artifact : Bytes) -> Client {
+fn complete_chain(
+  key : @testkit.Signer,
+  path : String,
+  artifact : Bytes,
+) -> Client {
   let targets = @testkit.targets(1, path, artifact, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  open_trusted_root(
-    @testkit.root(1, key, [key]),
-    "2026-09-25T00:00:00Z",
-  ).unwrap()
-  .accept_timestamp(timestamp).unwrap()
-  .accept_snapshot(snapshot).unwrap()
-  .accept_targets(targets).unwrap()
+  open_trusted_root(@testkit.root(1, key, [key]), "2026-09-25T00:00:00Z")
+  .unwrap()
+  .accept_timestamp(timestamp)
+  .unwrap()
+  .accept_snapshot(snapshot)
+  .unwrap()
+  .accept_targets(targets)
+  .unwrap()
 }
 
 ///|
@@ -31,11 +36,19 @@ test "targets raw bytes must match the trusted snapshot" {
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
   let client = open_trusted_root(
-    @testkit.root(1, key, [key]),
-    "2026-09-25T00:00:00Z",
-  ).unwrap().accept_timestamp(timestamp).unwrap().accept_snapshot(snapshot).unwrap()
+      @testkit.root(1, key, [key]),
+      "2026-09-25T00:00:00Z",
+    )
+    .unwrap()
+    .accept_timestamp(timestamp)
+    .unwrap()
+    .accept_snapshot(snapshot)
+    .unwrap()
   let tampered = @testkit.targets(1, "other.bin", artifact, key)
-  assert_true(client.accept_targets(tampered) is Err(LengthMismatch(_, _, _) | HashMismatch(_)))
+  assert_true(
+    client.accept_targets(tampered)
+    is Err(LengthMismatch(_, _, _) | HashMismatch(_)),
+  )
 }
 
 ///|
@@ -46,5 +59,8 @@ test "targets cannot be used before all verification stages" {
     "2026-09-25T00:00:00Z",
   ).unwrap()
   assert_true(client.top_level_target("app.bin") is Err(MissingStage(_)))
-  assert_true(client.accept_targets(@testkit.empty_targets(1, key)) is Err(MissingStage(_)))
+  assert_true(
+    client.accept_targets(@testkit.empty_targets(1, key))
+    is Err(MissingStage(_)),
+  )
 }

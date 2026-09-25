@@ -14,7 +14,9 @@ fn check_metafile(
   match description.length() {
     Some(expected) =>
       if raw.length() != expected {
-        return Err(LengthMismatch(name, expected.to_int64(), raw.length().to_int64()))
+        return Err(
+          LengthMismatch(name, expected.to_int64(), raw.length().to_int64()),
+        )
       }
     None => ()
   }
@@ -31,7 +33,10 @@ fn check_metafile(
 ///|
 /// Accept a snapshot pinned by the trusted timestamp. Every metadata filename
 /// previously listed remains present and cannot decrease in version.
-pub fn Client::accept_snapshot(self : Client, raw : Bytes) -> Result[Client, ClientError] {
+pub fn Client::accept_snapshot(
+  self : Client,
+  raw : Bytes,
+) -> Result[Client, ClientError] {
   let timestamp = match self.timestamp {
     Some(value) => value
     None => return Err(MissingStage("timestamp"))
@@ -40,19 +45,21 @@ pub fn Client::accept_snapshot(self : Client, raw : Bytes) -> Result[Client, Cli
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  match check_metafile(
-    "snapshot",
-    raw,
-    timestamp.snapshot(),
-    self.budget.max_snapshot_bytes,
-  ) {
+  match
+    check_metafile(
+      "snapshot",
+      raw,
+      timestamp.snapshot(),
+      self.budget.max_snapshot_bytes,
+    ) {
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  let candidate = match @model.parse_snapshot(
-    raw,
-    limits=wire_limits(self.budget.max_snapshot_bytes, self.budget),
-  ) {
+  let candidate = match
+    @model.parse_snapshot(
+      raw,
+      limits=wire_limits(self.budget.max_snapshot_bytes, self.budget),
+    ) {
     Ok(value) => value
     Err(error) => return Err(Model(error))
   }
@@ -73,11 +80,9 @@ pub fn Client::accept_snapshot(self : Client, raw : Bytes) -> Result[Client, Cli
         None => return Err(Rollback("snapshot." + name, old_file.version(), 0))
       }
       if new_file.version() < old_file.version() {
-        return Err(Rollback(
-          "snapshot." + name,
-          old_file.version(),
-          new_file.version(),
-        ))
+        return Err(
+          Rollback("snapshot." + name, old_file.version(), new_file.version()),
+        )
       }
     }
   }
@@ -97,7 +102,9 @@ pub fn Client::accept_snapshot(self : Client, raw : Bytes) -> Result[Client, Cli
 }
 
 ///|
-pub fn Client::targets_request_name(self : Client) -> Result[String, ClientError] {
+pub fn Client::targets_request_name(
+  self : Client,
+) -> Result[String, ClientError] {
   let snapshot = match self.snapshot {
     Some(value) => value
     None => return Err(MissingStage("snapshot"))

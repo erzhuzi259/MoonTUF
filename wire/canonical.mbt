@@ -8,15 +8,27 @@ fn compare_keys(left : String, right : String) -> Int {
   for index in 0..<common {
     let x = a[index].to_int()
     let y = b[index].to_int()
-    if x < y { return -1 }
-    if x > y { return 1 }
+    if x < y {
+      return -1
+    }
+    if x > y {
+      return 1
+    }
   }
-  if a.length() < b.length() { -1 } else if a.length() > b.length() { 1 } else { 0 }
+  if a.length() < b.length() {
+    -1
+  } else if a.length() > b.length() {
+    1
+  } else {
+    0
+  }
 }
 
 ///|
 fn push_ascii(output : Array[Byte], text : String) -> Unit {
-  for byte in @utf8.encode(text) { output.push(byte) }
+  for byte in @utf8.encode(text) {
+    output.push(byte)
+  }
 }
 
 ///|
@@ -43,14 +55,18 @@ fn append_canonical(value : Value, output : Array[Byte]) -> Unit {
     List(items) => {
       output.push(91)
       for index in 0..<items.length() {
-        if index > 0 { output.push(44) }
+        if index > 0 {
+          output.push(44)
+        }
         append_canonical(items[index], output)
       }
       output.push(93)
     }
     Dict(entries) => {
       let order : Array[Int] = []
-      for index in 0..<entries.length() { order.push(index) }
+      for index in 0..<entries.length() {
+        order.push(index)
+      }
       order.sort_by(fn(left, right) {
         let (a, _) = entries[left]
         let (b, _) = entries[right]
@@ -58,7 +74,9 @@ fn append_canonical(value : Value, output : Array[Byte]) -> Unit {
       })
       output.push(123)
       for position in 0..<order.length() {
-        if position > 0 { output.push(44) }
+        if position > 0 {
+          output.push(44)
+        }
         let (key, child) = entries[order[position]]
         push_string(output, key)
         output.push(58)

@@ -1,10 +1,10 @@
 import {
-  "erzhuzi259/moontuf/model" @model,
-  "erzhuzi259/moontuf/crypto" @crypto,
+  "erzhuzi259/moontuf/model",
+  "erzhuzi259/moontuf/crypto",
 }
 
 import {
-  "erzhuzi259/moontuf/wire" @wire,
+  "erzhuzi259/moontuf/wire",
   "moonbitlang/core/encoding/utf8",
-  "moonbitstack/mooncrypt/sign/ed25519" @ed25519,
+  "moonbitstack/mooncrypt/sign/ed25519",
 } for "test"

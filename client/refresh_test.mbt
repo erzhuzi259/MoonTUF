@@ -33,7 +33,11 @@ test "refresh returns partial trusted state after later fetch failure" {
     "2026-09-25T00:00:00Z",
   ).unwrap()
   let load = fn(name : String) -> Bytes? {
-    if name == "timestamp.json" { Some(timestamp) } else { None }
+    if name == "timestamp.json" {
+      Some(timestamp)
+    } else {
+      None
+    }
   }
   let outcome = client.refresh(load)
   assert_true(outcome.status() is Failed(MetadataUnavailable("snapshot.json")))
