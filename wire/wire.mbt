@@ -247,9 +247,6 @@ fn Parser::object(
       Ok(pair) => pair
       Err(error) => return Err(error)
     }
-    if names.contains(name) {
-      return Err(DuplicateKey(name))
-    }
     names.push(name)
     cursor = self.space(after_name)
     if !self.at(cursor, 58) {
@@ -262,7 +259,7 @@ fn Parser::object(
     entries.push((name, child))
     cursor = self.space(after_child)
     if self.at(cursor, 125) {
-      return Ok((Dict(entries), cursor + 1))
+      return finish_object(entries, names, cursor + 1)
     }
     if !self.at(cursor, 44) {
       return Err(InvalidJson(cursor, "expected ',' or '}'"))
@@ -270,6 +267,23 @@ fn Parser::object(
     cursor = self.space(cursor + 1)
   }
   Err(InvalidJson(cursor, "unterminated object"))
+}
+
+///|
+/// Sorting once gives O(m log m) duplicate detection for an m-member object;
+/// linear scanning each new key was quadratic on attacker-controlled JSON.
+fn finish_object(
+  entries : Array[(String, Value)],
+  names : Array[String],
+  end : Int,
+) -> Result[(Value, Int), WireError] {
+  names.sort()
+  for index in 1..<names.length() {
+    if names[index - 1] == names[index] {
+      return Err(DuplicateKey(names[index]))
+    }
+  }
+  Ok((Dict(entries), end))
 }
 
 ///|

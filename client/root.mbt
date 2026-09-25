@@ -61,7 +61,7 @@ pub fn Client::finish_root_chain(self : Client) -> Result[Client, ClientError] {
 ///|
 pub fn Client::next_root_name(self : Client) -> String? {
   let version = self.root.common().version()
-  if version == 2147483647 || self.root_rotations >= self.budget.max_root_rotations {
+  if version == 2147483647 {
     None
   } else {
     Some((version + 1).to_string() + ".root.json")
