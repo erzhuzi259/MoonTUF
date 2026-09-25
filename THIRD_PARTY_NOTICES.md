@@ -9,6 +9,12 @@ cryptographic primitives. Its transitive dependencies are `moonbitstack/moonbase
 declare Apache-2.0. Recheck the license and dependency graph when refreshing
 versions.
 
+Upstream repositories: [mooncrypt](https://github.com/moonbitstack/mooncrypt),
+[moonbase](https://github.com/moonbitstack/moonbase), and
+[moondate](https://github.com/moonbitstack/moondate). Dependency source and
+license files remain in the package manager's cache; they are not vendored
+into this repository.
+
 Protocol semantics were researched from [The Update Framework Specification
 1.0.36](https://theupdateframework.github.io/specification/latest/) and its
 [canonical JSON reference](https://wiki.laptop.org/go/Canonical_JSON). Reference
@@ -26,3 +32,11 @@ imported vector must include its source and license here.
 from [RFC 8032 §7.1](https://www.rfc-editor.org/rfc/rfc8032.html#section-7.1),
 used solely as a verification known-answer vector. It does not include the
 private test seed.
+
+RFC 8032's notice attributes copyright to the IETF Trust and its authors
+(2017), under BCP 78 and the [IETF Trust Legal Provisions](https://trustee.ietf.org/documents/trust-legal-provisions/)
+applicable at publication. Only the public key and signature data constants
+are reproduced here, not the RFC's example implementation or prose. This
+notice identifies the source terms and does not relicense the RFC itself.
+The SHA-256 `abc` expected digest is a computed algorithm result; the test
+and assertion code are original, with no external implementation copied.

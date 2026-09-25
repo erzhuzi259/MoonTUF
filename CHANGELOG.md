@@ -2,6 +2,12 @@
 
 ## 0.1.0 — local development
 
+- Made interrupted refreshes resumable with the retained timestamp pins and
+  expiry checks, even when the repository timestamp version is unchanged.
+- Isolated public signed/custom JSON trees from verified metadata through
+  recursive copies of mutable containers.
+- Added delegated DFS, terminating-role and budget-overrun regressions; made
+  offline scenario mismatches fail the process for CI smoke validation.
 - Added bounded JSON TUF profile, Ed25519/SHA-256 verification and four-role
   trusted-state progression.
 - Added root rotation, rollback/expiry enforcement, delegated target lookup,
