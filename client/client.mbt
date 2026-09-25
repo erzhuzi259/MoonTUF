@@ -127,6 +127,7 @@ fn guard_target_size(
 pub struct Client {
   root : @model.Root
   timestamp : @model.Timestamp?
+  timestamp_baseline : @model.Timestamp?
   snapshot : @model.Snapshot?
   previous_snapshot : @model.Snapshot?
   targets : @model.Targets?
@@ -178,6 +179,7 @@ pub fn Client::begin_update(
   Ok({
     root: self.root,
     timestamp: self.timestamp,
+    timestamp_baseline: self.timestamp_baseline,
     snapshot: self.snapshot,
     previous_snapshot: self.previous_snapshot,
     targets: self.targets,
@@ -222,6 +224,7 @@ pub fn open_trusted_root(
   Ok({
     root,
     timestamp: None,
+    timestamp_baseline: None,
     snapshot: None,
     previous_snapshot: None,
     targets: None,
@@ -242,14 +245,38 @@ pub fn Client::check_root_fresh(self : Client) -> Result[Unit, ClientError] {
 
 ///|
 pub fn Client::ready(self : Client) -> Bool {
-  if self.check_root_fresh() is Err(_) {
-    return false
+  self.check_complete_fresh() is Ok(_)
+}
+
+///|
+/// A retained chain can become stale at the start of a later update cycle.
+/// This returns the first missing or expired role instead of silently treating
+/// an unchanged timestamp as a usable complete update.
+pub fn Client::check_complete_fresh(self : Client) -> Result[Unit, ClientError] {
+  match self.check_root_fresh() {
+    Ok(_) => ()
+    Err(error) => return Err(error)
   }
-  match (self.timestamp, self.snapshot, self.targets) {
-    (Some(timestamp), Some(snapshot), Some(targets)) =>
-      !@model.expired(timestamp.common().expires(), self.update_start) &&
-      !@model.expired(snapshot.common().expires(), self.update_start) &&
-      !@model.expired(targets.common().expires(), self.update_start)
-    _ => false
+  let timestamp = match self.timestamp {
+    Some(value) => value
+    None => return Err(MissingStage("timestamp"))
   }
+  let snapshot = match self.snapshot {
+    Some(value) => value
+    None => return Err(MissingStage("snapshot"))
+  }
+  let targets = match self.targets {
+    Some(value) => value
+    None => return Err(MissingStage("targets"))
+  }
+  if @model.expired(timestamp.common().expires(), self.update_start) {
+    return Err(Expired("timestamp"))
+  }
+  if @model.expired(snapshot.common().expires(), self.update_start) {
+    return Err(Expired("snapshot"))
+  }
+  if @model.expired(targets.common().expires(), self.update_start) {
+    return Err(Expired("targets"))
+  }
+  Ok(())
 }

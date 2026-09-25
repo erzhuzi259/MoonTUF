@@ -41,6 +41,7 @@ pub fn Client::accept_targets(
   Ok({
     root: self.root,
     timestamp: self.timestamp,
+    timestamp_baseline: self.timestamp_baseline,
     snapshot: self.snapshot,
     previous_snapshot: self.previous_snapshot,
     targets: Some(candidate),

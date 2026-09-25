@@ -26,7 +26,11 @@ pub fn Client::accept_timestamp(
     Ok(_) => ()
     Err(error) => return Err(Trust(error))
   }
-  if self.timestamp is Some(previous) {
+  let previous_timestamp = match self.timestamp {
+    Some(value) => Some(value)
+    None => self.timestamp_baseline
+  }
+  if previous_timestamp is Some(previous) {
     let old_version = previous.common().version()
     let new_version = candidate.common().version()
     if new_version < old_version {
@@ -50,6 +54,7 @@ pub fn Client::accept_timestamp(
   Ok({
     root: self.root,
     timestamp: Some(candidate),
+    timestamp_baseline: Some(candidate),
     snapshot: None,
     previous_snapshot: match self.snapshot {
       Some(value) => Some(value)

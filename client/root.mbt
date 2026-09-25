@@ -40,11 +40,18 @@ pub fn Client::advance_root(
   }
   Ok({
     root: candidate,
-    // Key rotation can invalidate fast-forwarded timestamp/snapshot state.
-    // Drop all cached metadata and require a fresh chain under the new root.
+    // Require a fresh online chain under the new root, but retain the signed
+    // version baselines so key rotation cannot authorize a rollback.
     timestamp: None,
+    timestamp_baseline: match self.timestamp {
+      Some(value) => Some(value)
+      None => self.timestamp_baseline
+    },
     snapshot: None,
-    previous_snapshot: None,
+    previous_snapshot: match self.snapshot {
+      Some(value) => Some(value)
+      None => self.previous_snapshot
+    },
     targets: None,
     update_start: self.update_start,
     budget: self.budget,

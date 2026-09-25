@@ -95,7 +95,11 @@ pub fn Client::refresh(
   }
   let after_timestamp = match current.accept_timestamp(timestamp_raw) {
     Ok(value) => value
-    Err(Unchanged(_, _)) => return outcome(current, Unchanged, accepted)
+    Err(Unchanged(_, _)) =>
+      match current.check_complete_fresh() {
+        Ok(_) => return outcome(current, Unchanged, accepted)
+        Err(error) => return outcome(current, Failed(error), accepted)
+      }
     Err(error) => return outcome(current, Failed(error), accepted)
   }
   current = after_timestamp

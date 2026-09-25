@@ -92,6 +92,7 @@ pub fn Client::accept_snapshot(
   Ok({
     root: self.root,
     timestamp: self.timestamp,
+    timestamp_baseline: self.timestamp_baseline,
     snapshot: Some(candidate),
     previous_snapshot: Some(candidate),
     targets: None,

@@ -264,6 +264,7 @@ pub fn restore_checkpoint(
   Ok({
     root: anchor.root,
     timestamp: Some(timestamp),
+    timestamp_baseline: Some(timestamp),
     snapshot: Some(snapshot),
     previous_snapshot: Some(snapshot),
     targets: Some(targets),

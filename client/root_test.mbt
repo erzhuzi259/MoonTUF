@@ -62,3 +62,38 @@ test "root size and rotation budgets fail closed" {
     is Err(RootRotationLimit(_)),
   )
 }
+
+///|
+test "root key rotation keeps timestamp rollback baselines" {
+  let old_key = @testkit.signer(50)
+  let new_key = @testkit.signer(51)
+  let old_targets = @testkit.empty_targets(5, old_key)
+  let old_snapshot = @testkit.snapshot(5, 5, old_targets, old_key)
+  let old_timestamp = @testkit.timestamp(5, 5, old_snapshot, old_key)
+  let initial = open_trusted_root(
+      @testkit.root(1, old_key, [old_key]),
+      "2026-09-25T00:00:00Z",
+    )
+    .unwrap()
+    .accept_timestamp(old_timestamp)
+    .unwrap()
+  let rotated = initial
+    .advance_root(@testkit.root(2, new_key, [old_key, new_key]))
+    .unwrap()
+  assert_eq(rotated.timestamp_version(), None)
+  let new_targets = @testkit.empty_targets(6, new_key)
+  let new_snapshot = @testkit.snapshot(6, 6, new_targets, new_key)
+  let old_version = @testkit.timestamp(4, 6, new_snapshot, new_key)
+  assert_true(
+    rotated.accept_timestamp(old_version) is Err(Rollback("timestamp", 5, 4)),
+  )
+  let old_snapshot_ref = @testkit.timestamp(6, 4, new_snapshot, new_key)
+  assert_true(
+    rotated.accept_timestamp(old_snapshot_ref)
+    is Err(Rollback("timestamp.snapshot", 5, 4)),
+  )
+  let accepted = rotated
+    .accept_timestamp(@testkit.timestamp(6, 6, new_snapshot, new_key))
+    .unwrap()
+  assert_eq(accepted.timestamp_version(), Some(6))
+}
