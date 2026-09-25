@@ -28,6 +28,9 @@ still fail.
 metadata document. It may include a version and is distinct from a host's
 local storage key.
 
+**Snapshot pin**: The snapshot version and optional byte digest/length bound
+by a trusted timestamp. An equal-version timestamp does not replace this pin.
+
 **Rollback baseline**: Last accepted metadata versions retained for rollback
 checks across update cycles. An authenticated change to the timestamp or
 snapshot signing-key set discards both online baselines to permit recovery

@@ -31,3 +31,10 @@ version prefix for rotated roots and consistent snapshots. It is not a
 mandatory local filename: the host chooses its storage layout, preserves its
 previous trusted state until the new state is durable, and must not promote a
 partially verified target bundle.
+
+After a transient snapshot or targets fetch failure, retry using the
+`RefreshOutcome::client()` state. An unchanged timestamp resumes missing
+descendants under the already accepted snapshot pin; it does not adopt a new
+pin from an equal-version timestamp. Retained metadata must still be fresh at
+the update start time. `accepted()` includes only newly accepted documents in
+that retry, and successful completion always requires a complete fresh chain.

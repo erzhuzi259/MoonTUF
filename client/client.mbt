@@ -267,19 +267,19 @@ pub fn Client::check_complete_fresh(self : Client) -> Result[Unit, ClientError] 
     Some(value) => value
     None => return Err(MissingStage("timestamp"))
   }
+  if @model.expired(timestamp.common().expires(), self.update_start) {
+    return Err(Expired("timestamp"))
+  }
   let snapshot = match self.snapshot {
     Some(value) => value
     None => return Err(MissingStage("snapshot"))
   }
+  if @model.expired(snapshot.common().expires(), self.update_start) {
+    return Err(Expired("snapshot"))
+  }
   let targets = match self.targets {
     Some(value) => value
     None => return Err(MissingStage("targets"))
-  }
-  if @model.expired(timestamp.common().expires(), self.update_start) {
-    return Err(Expired("timestamp"))
-  }
-  if @model.expired(snapshot.common().expires(), self.update_start) {
-    return Err(Expired("snapshot"))
   }
   if @model.expired(targets.common().expires(), self.update_start) {
     return Err(Expired("targets"))

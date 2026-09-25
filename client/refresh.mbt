@@ -63,7 +63,9 @@ fn outcome(
 /// be backed by memory, disk, a network client, or a test harness; MoonTUF does
 /// not perform I/O. Missing N+1 root means the root chain is complete, while
 /// missing any later top-level role is a failure. The outcome retains all
-/// successfully accepted state even when a later stage fails.
+/// successfully accepted state even when a later stage fails. A retry with
+/// an equal timestamp resumes missing descendants using the retained pins;
+/// it never replaces trusted data with the equal-version candidate.
 pub fn Client::refresh(
   self : Client,
   load : (String) -> Bytes?,
@@ -94,35 +96,39 @@ pub fn Client::refresh(
         accepted,
       )
   }
-  let after_timestamp = match current.accept_timestamp(timestamp_raw) {
-    Ok(value) => value
+  match current.accept_timestamp(timestamp_raw) {
+    Ok(value) => {
+      current = value
+      accepted.push({ name: "timestamp.json", raw: timestamp_raw, })
+    }
     Err(Unchanged(_, _)) =>
       match current.check_complete_fresh() {
         Ok(_) => return outcome(current, Unchanged, accepted)
+        Err(MissingStage("snapshot" | "targets")) => ()
         Err(error) => return outcome(current, Failed(error), accepted)
       }
     Err(error) => return outcome(current, Failed(error), accepted)
   }
-  current = after_timestamp
-  accepted.push({ name: "timestamp.json", raw: timestamp_raw, })
-  let snapshot_name = match current.snapshot_request_name() {
-    Ok(value) => value
-    Err(error) => return outcome(current, Failed(error), accepted)
+  if current.snapshot is None {
+    let snapshot_name = match current.snapshot_request_name() {
+      Ok(value) => value
+      Err(error) => return outcome(current, Failed(error), accepted)
+    }
+    let snapshot_raw = match load(snapshot_name) {
+      Some(bytes) => bytes
+      None =>
+        return outcome(
+          current,
+          Failed(MetadataUnavailable(snapshot_name)),
+          accepted,
+        )
+    }
+    current = match current.accept_snapshot(snapshot_raw) {
+      Ok(value) => value
+      Err(error) => return outcome(current, Failed(error), accepted)
+    }
+    accepted.push({ name: snapshot_name, raw: snapshot_raw, })
   }
-  let snapshot_raw = match load(snapshot_name) {
-    Some(bytes) => bytes
-    None =>
-      return outcome(
-        current,
-        Failed(MetadataUnavailable(snapshot_name)),
-        accepted,
-      )
-  }
-  current = match current.accept_snapshot(snapshot_raw) {
-    Ok(value) => value
-    Err(error) => return outcome(current, Failed(error), accepted)
-  }
-  accepted.push({ name: snapshot_name, raw: snapshot_raw, })
   let targets_name = match current.targets_request_name() {
     Ok(value) => value
     Err(error) => return outcome(current, Failed(error), accepted)
@@ -141,5 +147,8 @@ pub fn Client::refresh(
     Err(error) => return outcome(current, Failed(error), accepted)
   }
   accepted.push({ name: targets_name, raw: targets_raw, })
-  outcome(current, Complete, accepted)
+  match current.check_complete_fresh() {
+    Ok(_) => outcome(current, Complete, accepted)
+    Err(error) => outcome(current, Failed(error), accepted)
+  }
 }
