@@ -14,6 +14,8 @@ pub(all) enum ClientError {
   MissingDescriptor(String)
   RootRotationLimit(Int)
   TargetNotFound(String)
+  MetadataUnavailable(String)
+  DelegationLimit(Int)
   InvalidPath(String)
 } derive(Debug)
 

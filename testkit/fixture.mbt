@@ -112,3 +112,40 @@ pub fn empty_targets(
     "{\"_type\":\"targets\",\"spec_version\":\"1.0.0\",\"version\":\{version},\"expires\":\"\{expires}\",\"targets\":{}}"
   signed_envelope(signed_json, [signer])
 }
+
+///|
+pub fn top_with_delegation(
+  version : Int,
+  role_name : String,
+  pattern : String,
+  top_signer : Signer,
+  delegated_signer : Signer,
+  terminating? : Bool = false,
+) -> Bytes {
+  let delegated_id = delegated_signer.keyid
+  let delegated_key = delegated_signer.key_json
+  let terminal = if terminating { "true" } else { "false" }
+  let role =
+    "{\"name\":\"\{role_name}\",\"keyids\":[\"\{delegated_id}\"],\"threshold\":1,\"paths\":[\"\{pattern}\"],\"terminating\":\{terminal}}"
+  let signed_json =
+    "{\"_type\":\"targets\",\"spec_version\":\"1.0.0\",\"version\":\{version},\"expires\":\"2030-01-01T00:00:00Z\",\"targets\":{},\"delegations\":{\"keys\":{\"\{delegated_id}\":\{delegated_key}},\"roles\":[\{role}]}}"
+  signed_envelope(signed_json, [top_signer])
+}
+
+///|
+pub fn snapshot_with_delegation(
+  version : Int,
+  top_targets : Bytes,
+  delegated_role : String,
+  delegated_targets : Bytes,
+  signer : Signer,
+  delegated_version? : Int = 1,
+) -> Bytes {
+  let top_length = top_targets.length()
+  let top_hash = @crypto.sha256_hex(top_targets)
+  let delegated_length = delegated_targets.length()
+  let delegated_hash = @crypto.sha256_hex(delegated_targets)
+  let signed_json =
+    "{\"_type\":\"snapshot\",\"spec_version\":\"1.0.0\",\"version\":\{version},\"expires\":\"2030-01-01T00:00:00Z\",\"meta\":{\"targets.json\":{\"version\":1,\"length\":\{top_length},\"hashes\":{\"sha256\":\"\{top_hash}\"}},\"\{delegated_role}.json\":{\"version\":\{delegated_version},\"length\":\{delegated_length},\"hashes\":{\"sha256\":\"\{delegated_hash}\"}}}}"
+  signed_envelope(signed_json, [signer])
+}
