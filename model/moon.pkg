@@ -1,0 +1,6 @@
+import {
+  "erzhuzi259/moontuf/wire" @wire,
+  "erzhuzi259/moontuf/crypto" @crypto,
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/string" @string,
+}
