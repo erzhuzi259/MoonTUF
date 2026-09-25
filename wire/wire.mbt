@@ -344,6 +344,11 @@ pub fn Value::as_text(self : Value) -> String? {
 }
 
 ///|
+pub fn Value::as_boolean(self : Value) -> Bool? {
+  match self { Boolean(value) => Some(value); _ => None }
+}
+
+///|
 pub fn Value::as_integer(self : Value) -> String? {
   match self { Integer(value) => Some(value); _ => None }
 }
