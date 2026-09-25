@@ -1,10 +1,10 @@
 import {
-  "erzhuzi259/moontuf/client" @client,
-  "erzhuzi259/moontuf/model" @model,
+  "erzhuzi259/moontuf/client",
+  "erzhuzi259/moontuf/model",
 }
 
 import {
-  "erzhuzi259/moontuf/testkit" @testkit,
-  "erzhuzi259/moontuf/crypto" @crypto,
+  "erzhuzi259/moontuf/testkit",
+  "erzhuzi259/moontuf/crypto",
   "moonbitlang/core/encoding/utf8",
 } for "test"

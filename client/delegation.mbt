@@ -129,7 +129,7 @@ fn Client::search_delegations(
       Err(error) => return Err(error)
     }
     if child.target(path) is Some(found) {
-      return Ok(Found({ descriptor: found, role_chain: child_chain }))
+      return Ok(Found({ descriptor: found, role_chain: child_chain, }))
     }
     let deeper = match
       self.search_delegations(child, path, load, visited, child_chain) {
@@ -181,7 +181,7 @@ pub fn Client::find_target_detail(
     None => return Err(MissingStage("targets"))
   }
   if top.target(path) is Some(found) {
-    return Ok({ descriptor: found, role_chain: ["targets"] })
+    return Ok({ descriptor: found, role_chain: ["targets"], })
   }
   let visited : Array[String] = []
   match self.search_delegations(top, path, load, visited, ["targets"]) {

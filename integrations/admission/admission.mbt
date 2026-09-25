@@ -31,18 +31,25 @@ pub fn policy(
   }
   let roles = allowed_final_roles.copy()
   for role in roles {
-    if role == "" || role.contains("/") || role.contains("\\") || role.contains("..") {
+    if role == "" ||
+      role.contains("/") ||
+      role.contains("\\") ||
+      role.contains("..") {
       return Err(InvalidPolicy("invalid final role"))
     }
   }
-  Ok({ prefix, max_bytes, allowed_final_roles: roles })
+  Ok({ prefix, max_bytes, allowed_final_roles: roles, })
 }
 
 ///|
-pub fn Policy::prefix(self : Policy) -> String { self.prefix }
+pub fn Policy::prefix(self : Policy) -> String {
+  self.prefix
+}
 
 ///|
-pub fn Policy::max_bytes(self : Policy) -> Int64 { self.max_bytes }
+pub fn Policy::max_bytes(self : Policy) -> Int64 {
+  self.max_bytes
+}
 
 ///|
 pub fn Policy::allowed_final_roles(self : Policy) -> Array[String] {
@@ -64,22 +71,34 @@ pub struct Ticket {
 }
 
 ///|
-pub fn Ticket::path(self : Ticket) -> String { self.path }
+pub fn Ticket::path(self : Ticket) -> String {
+  self.path
+}
 
 ///|
-pub fn Ticket::repository_name(self : Ticket) -> String { self.repository_name }
+pub fn Ticket::repository_name(self : Ticket) -> String {
+  self.repository_name
+}
 
 ///|
-pub fn Ticket::length(self : Ticket) -> Int64 { self.length }
+pub fn Ticket::length(self : Ticket) -> Int64 {
+  self.length
+}
 
 ///|
-pub fn Ticket::sha256(self : Ticket) -> String { self.sha256 }
+pub fn Ticket::sha256(self : Ticket) -> String {
+  self.sha256
+}
 
 ///|
-pub fn Ticket::root_version(self : Ticket) -> Int { self.root_version }
+pub fn Ticket::root_version(self : Ticket) -> Int {
+  self.root_version
+}
 
 ///|
-pub fn Ticket::snapshot_version(self : Ticket) -> Int { self.snapshot_version }
+pub fn Ticket::snapshot_version(self : Ticket) -> Int {
+  self.snapshot_version
+}
 
 ///|
 pub fn Ticket::target_role_chain(self : Ticket) -> Array[String] {
@@ -94,13 +113,17 @@ pub(all) enum Admission {
 
 ///|
 fn allowed_namespace(policy : Policy, path : String) -> Bool {
-  if policy.prefix == "" { return true }
+  if policy.prefix == "" {
+    return true
+  }
   path.has_prefix(policy.prefix + "/")
 }
 
 ///|
 fn allowed_role(policy : Policy, chain : Array[String]) -> Bool {
-  if policy.allowed_final_roles.length() == 0 { return true }
+  if policy.allowed_final_roles.length() == 0 {
+    return true
+  }
   let final_role = chain[chain.length() - 1]
   policy.allowed_final_roles.contains(final_role)
 }
@@ -133,7 +156,8 @@ pub fn evaluate(
   if !allowed_role(policy, chain) {
     return Err(RoleNotAllowed(chain[chain.length() - 1]))
   }
-  if installed_sha256 != "" && installed_sha256.to_lower() == descriptor.sha256() {
+  if installed_sha256 != "" &&
+    installed_sha256.to_lower() == descriptor.sha256() {
     return Ok(Current)
   }
   let repository_name = match client.target_request_name(path, load) {
@@ -144,15 +168,17 @@ pub fn evaluate(
     Some(value) => value
     None => return Err(Client(@client.MissingStage("snapshot")))
   }
-  Ok(Download({
-    path,
-    repository_name,
-    length: descriptor.length(),
-    sha256: descriptor.sha256(),
-    root_version: client.root_version(),
-    snapshot_version,
-    target_role_chain: chain,
-  }))
+  Ok(
+    Download({
+      path,
+      repository_name,
+      length: descriptor.length(),
+      sha256: descriptor.sha256(),
+      root_version: client.root_version(),
+      snapshot_version,
+      target_role_chain: chain,
+    }),
+  )
 }
 
 ///|
@@ -173,7 +199,8 @@ pub fn verify_download(
     Err(error) => return Err(Client(error))
   }
   let descriptor = resolved.descriptor()
-  if descriptor.length() != ticket.length || descriptor.sha256() != ticket.sha256 {
+  if descriptor.length() != ticket.length ||
+    descriptor.sha256() != ticket.sha256 {
     return Err(StaleTicket)
   }
   if resolved.role_chain() != ticket.target_role_chain {
@@ -203,7 +230,8 @@ pub fn open_download_stream(
     Err(error) => return Err(Client(error))
   }
   let descriptor = resolved.descriptor()
-  if descriptor.length() != ticket.length || descriptor.sha256() != ticket.sha256 {
+  if descriptor.length() != ticket.length ||
+    descriptor.sha256() != ticket.sha256 {
     return Err(StaleTicket)
   }
   if resolved.role_chain() != ticket.target_role_chain {
