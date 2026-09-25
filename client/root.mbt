@@ -1,4 +1,34 @@
 ///|
+/// An authenticated change to either online signing-key set is a recovery
+/// boundary. Threshold-only changes do not erase rollback history; key order
+/// is not part of the set's identity.
+fn role_signing_keys_changed(
+  previous : @model.Root,
+  candidate : @model.Root,
+  name : String,
+) -> Bool {
+  let old_role = match previous.role(name) {
+    Some(value) => value
+    None => return true
+  }
+  let new_role = match candidate.role(name) {
+    Some(value) => value
+    None => return true
+  }
+  let old_ids = old_role.keyids()
+  let new_ids = new_role.keyids()
+  if old_ids.length() != new_ids.length() {
+    return true
+  }
+  for id in old_ids {
+    if !new_ids.contains(id) {
+      return true
+    }
+  }
+  false
+}
+
+///|
 /// Advance one and only one version of root metadata. Both the previously
 /// trusted root and the proposed root must authorize the same signed bytes.
 /// A caller can repeat this step until version N+1 is unavailable, then call
@@ -38,24 +68,54 @@ pub fn Client::advance_root(
     Ok(_) => ()
     Err(error) => return Err(Trust(error))
   }
+  let reset_online = role_signing_keys_changed(
+      self.root,
+      candidate,
+      "timestamp",
+    ) ||
+    role_signing_keys_changed(self.root, candidate, "snapshot")
+  let reset_targets = reset_online ||
+    role_signing_keys_changed(self.root, candidate, "targets")
   Ok({
     root: candidate,
-    // Require a fresh online chain under the new root, but retain the signed
-    // version baselines so key rotation cannot authorize a rollback.
-    timestamp: None,
-    timestamp_baseline: match self.timestamp {
-      Some(value) => Some(value)
-      None => self.timestamp_baseline
+    // An online-key rotation clears baselines to recover from fast-forward.
+    // Otherwise the old metadata stays trusted under the unchanged keys.
+    // No target is exposed until the caller finishes probing the root chain.
+    timestamp: if reset_online {
+      None
+    } else {
+      self.timestamp
     },
-    snapshot: None,
-    previous_snapshot: match self.snapshot {
-      Some(value) => Some(value)
-      None => self.previous_snapshot
+    timestamp_baseline: if reset_online {
+      None
+    } else {
+      match self.timestamp {
+        Some(value) => Some(value)
+        None => self.timestamp_baseline
+      }
     },
-    targets: None,
+    snapshot: if reset_online {
+      None
+    } else {
+      self.snapshot
+    },
+    previous_snapshot: if reset_online {
+      None
+    } else {
+      match self.snapshot {
+        Some(value) => Some(value)
+        None => self.previous_snapshot
+      }
+    },
+    targets: if reset_targets {
+      None
+    } else {
+      self.targets
+    },
     update_start: self.update_start,
     budget: self.budget,
     root_rotations: self.root_rotations + 1,
+    root_chain_complete: false,
   })
 }
 
@@ -64,7 +124,19 @@ pub fn Client::advance_root(
 /// the fixed update start time. Call after the host has no N+1 root to offer.
 pub fn Client::finish_root_chain(self : Client) -> Result[Client, ClientError] {
   match self.check_root_fresh() {
-    Ok(_) => Ok(self)
+    Ok(_) =>
+      Ok({
+        root: self.root,
+        timestamp: self.timestamp,
+        timestamp_baseline: self.timestamp_baseline,
+        snapshot: self.snapshot,
+        previous_snapshot: self.previous_snapshot,
+        targets: self.targets,
+        update_start: self.update_start,
+        budget: self.budget,
+        root_rotations: self.root_rotations,
+        root_chain_complete: true,
+      })
     Err(error) => Err(error)
   }
 }

@@ -48,6 +48,7 @@ pub fn Client::accept_targets(
     update_start: self.update_start,
     budget: self.budget,
     root_rotations: self.root_rotations,
+    root_chain_complete: self.root_chain_complete,
   })
 }
 

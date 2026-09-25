@@ -271,5 +271,6 @@ pub fn restore_checkpoint(
     update_start,
     budget,
     root_rotations: 0,
+    root_chain_complete: true,
   })
 }

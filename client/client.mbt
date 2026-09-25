@@ -134,6 +134,7 @@ pub struct Client {
   update_start : String
   budget : Budgets
   root_rotations : Int
+  root_chain_complete : Bool
 }
 
 ///|
@@ -186,6 +187,7 @@ pub fn Client::begin_update(
     update_start: new_start,
     budget: self.budget,
     root_rotations: 0,
+    root_chain_complete: self.root_chain_complete,
   })
 }
 
@@ -231,6 +233,7 @@ pub fn open_trusted_root(
     update_start,
     budget,
     root_rotations: 0,
+    root_chain_complete: true,
   })
 }
 
@@ -253,6 +256,9 @@ pub fn Client::ready(self : Client) -> Bool {
 /// This returns the first missing or expired role instead of silently treating
 /// an unchanged timestamp as a usable complete update.
 pub fn Client::check_complete_fresh(self : Client) -> Result[Unit, ClientError] {
+  if !self.root_chain_complete {
+    return Err(MissingStage("root chain"))
+  }
   match self.check_root_fresh() {
     Ok(_) => ()
     Err(error) => return Err(error)
