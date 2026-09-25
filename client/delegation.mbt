@@ -161,12 +161,12 @@ pub fn Client::verify_target(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  match guard_size("target:" + path, candidate, self.budget.max_target_bytes) {
+  match guard_target_size("target:" + path, candidate, self.budget.max_target_bytes) {
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  if candidate.length() != descriptor.length() {
-    return Err(LengthMismatch(path, descriptor.length(), candidate.length()))
+  if candidate.length().to_int64() != descriptor.length() {
+    return Err(LengthMismatch(path, descriptor.length(), candidate.length().to_int64()))
   }
   if !@crypto.matches_sha256(candidate, descriptor.sha256()) {
     return Err(HashMismatch(path))

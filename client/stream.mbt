@@ -4,7 +4,7 @@
 /// temporary content after finish succeeds.
 pub struct VerifiedStream {
   path : String
-  length : Int
+  length : Int64
   sha256 : String
 }
 
@@ -12,7 +12,7 @@ pub struct VerifiedStream {
 pub fn VerifiedStream::path(self : VerifiedStream) -> String { self.path }
 
 ///|
-pub fn VerifiedStream::length(self : VerifiedStream) -> Int { self.length }
+pub fn VerifiedStream::length(self : VerifiedStream) -> Int64 { self.length }
 
 ///|
 pub fn VerifiedStream::sha256(self : VerifiedStream) -> String { self.sha256 }
@@ -20,10 +20,10 @@ pub fn VerifiedStream::sha256(self : VerifiedStream) -> String { self.sha256 }
 ///|
 pub struct TargetStream {
   path : String
-  expected_length : Int
+  expected_length : Int64
   expected_sha256 : String
-  maximum : Int
-  mut seen : Int
+  maximum : Int64
+  mut seen : Int64
   mut finished : Bool
   hasher : @sha2.Hasher
 }
@@ -32,27 +32,27 @@ pub struct TargetStream {
 pub fn TargetStream::path(self : TargetStream) -> String { self.path }
 
 ///|
-pub fn TargetStream::bytes_seen(self : TargetStream) -> Int { self.seen }
+pub fn TargetStream::bytes_seen(self : TargetStream) -> Int64 { self.seen }
 
 ///|
-pub fn TargetStream::remaining(self : TargetStream) -> Int {
+pub fn TargetStream::remaining(self : TargetStream) -> Int64 {
   self.expected_length - self.seen
 }
 
 ///|
 fn stream_for_descriptor(
   descriptor : @model.TargetFile,
-  maximum : Int,
+  maximum : Int64,
 ) -> Result[TargetStream, ClientError] {
   if descriptor.length() > maximum {
-    return Err(ResourceLimit("target:" + descriptor.path(), descriptor.length(), maximum))
+    return Err(TargetResourceLimit("target:" + descriptor.path(), descriptor.length(), maximum))
   }
   Ok({
     path: descriptor.path(),
     expected_length: descriptor.length(),
     expected_sha256: descriptor.sha256(),
     maximum,
-    seen: 0,
+    seen: 0L,
     finished: false,
     hasher: @sha2.Hasher::new(kind=@sha2.Sha256),
   })
@@ -95,22 +95,23 @@ pub fn TargetStream::write(
   chunk : Bytes,
 ) -> Result[Unit, ClientError] {
   if self.finished { return Err(AlreadyFinished) }
-  if chunk.length() > self.expected_length - self.seen {
+  let chunk_length = chunk.length().to_int64()
+  if chunk_length > self.expected_length - self.seen {
     return Err(LengthMismatch(
       self.path,
       self.expected_length,
-      self.seen + chunk.length(),
+      self.seen + chunk_length,
     ))
   }
-  if chunk.length() > self.maximum - self.seen {
-    return Err(ResourceLimit(
+  if chunk_length > self.maximum - self.seen {
+    return Err(TargetResourceLimit(
       "target:" + self.path,
-      self.seen + chunk.length(),
+      self.seen + chunk_length,
       self.maximum,
     ))
   }
   self.hasher.write(chunk[:])
-  self.seen += chunk.length()
+  self.seen += chunk_length
   Ok(())
 }
 

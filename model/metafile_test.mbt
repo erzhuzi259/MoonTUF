@@ -37,3 +37,11 @@ test "declared SHA-256 must be a 32-byte digest" {
   )
   assert_true(parse_timestamp(invalid) is Err(InvalidValue(_, _)))
 }
+
+///|
+test "timestamp cannot describe unrelated metadata files" {
+  let invalid = @utf8.encode(
+    "{\"signed\":{\"_type\":\"timestamp\",\"spec_version\":\"1.0.0\",\"version\":1,\"expires\":\"2030-01-01T00:00:00Z\",\"meta\":{\"snapshot.json\":{\"version\":1},\"targets.json\":{\"version\":1}}},\"signatures\":[]}",
+  )
+  assert_true(parse_timestamp(invalid) is Err(InvalidValue(_, _)))
+}

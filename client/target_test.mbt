@@ -46,5 +46,5 @@ test "target bytes over caller budget are rejected before hashing" {
   .accept_snapshot(snapshot).unwrap()
   .accept_targets(targets).unwrap()
   assert_true(client.verify_top_level_target("a.bin", artifact) is
-    Err(ResourceLimit(_, _, _)))
+    Err(TargetResourceLimit(_, _, _)))
 }

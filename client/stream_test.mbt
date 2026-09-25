@@ -44,5 +44,5 @@ test "streaming verifier enforces total target budget" {
   .accept_timestamp(timestamp).unwrap()
   .accept_snapshot(snapshot).unwrap()
   .accept_targets(targets).unwrap()
-  assert_true(client.open_top_level_stream("model.bin") is Err(ResourceLimit(_, _, _)))
+  assert_true(client.open_top_level_stream("model.bin") is Err(TargetResourceLimit(_, _, _)))
 }

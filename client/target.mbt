@@ -17,7 +17,7 @@ pub fn VerifiedTarget::bytes(self : VerifiedTarget) -> Bytes { self.bytes }
 pub fn VerifiedTarget::sha256(self : VerifiedTarget) -> String { self.sha256 }
 
 ///|
-pub fn VerifiedTarget::length(self : VerifiedTarget) -> Int { self.bytes.length() }
+pub fn VerifiedTarget::length(self : VerifiedTarget) -> Int64 { self.bytes.length().to_int64() }
 
 ///|
 /// Verify exact target length and SHA-256 before returning a VerifiedTarget.
@@ -31,12 +31,12 @@ pub fn Client::verify_top_level_target(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  match guard_size("target:" + path, candidate, self.budget.max_target_bytes) {
+  match guard_target_size("target:" + path, candidate, self.budget.max_target_bytes) {
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  if candidate.length() != descriptor.length() {
-    return Err(LengthMismatch(path, descriptor.length(), candidate.length()))
+  if candidate.length().to_int64() != descriptor.length() {
+    return Err(LengthMismatch(path, descriptor.length(), candidate.length().to_int64()))
   }
   if !@crypto.matches_sha256(candidate, descriptor.sha256()) {
     return Err(HashMismatch(path))

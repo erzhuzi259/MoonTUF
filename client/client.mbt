@@ -9,7 +9,8 @@ pub(all) enum ClientError {
   Rollback(String, Int, Int)
   Unchanged(String, Int)
   ResourceLimit(String, Int, Int)
-  LengthMismatch(String, Int, Int)
+  TargetResourceLimit(String, Int64, Int64)
+  LengthMismatch(String, Int64, Int64)
   HashMismatch(String)
   MissingDescriptor(String)
   RootRotationLimit(Int)
@@ -31,7 +32,7 @@ pub struct Budgets {
   max_timestamp_bytes : Int
   max_snapshot_bytes : Int
   max_targets_bytes : Int
-  max_target_bytes : Int
+  max_target_bytes : Int64
   max_root_rotations : Int
   max_delegated_roles : Int
   max_json_depth : Int
@@ -44,7 +45,7 @@ pub fn budgets(
   max_timestamp_bytes? : Int = 256 * 1024,
   max_snapshot_bytes? : Int = 2 * 1024 * 1024,
   max_targets_bytes? : Int = 8 * 1024 * 1024,
-  max_target_bytes? : Int = 64 * 1024 * 1024,
+  max_target_bytes? : Int64 = 64L * 1024L * 1024L,
   max_root_rotations? : Int = 32,
   max_delegated_roles? : Int = 32,
   max_json_depth? : Int = 64,
@@ -55,9 +56,9 @@ pub fn budgets(
     max_timestamp_bytes: bounded_budget(max_timestamp_bytes, 16 * 1024 * 1024),
     max_snapshot_bytes: bounded_budget(max_snapshot_bytes, 256 * 1024 * 1024),
     max_targets_bytes: bounded_budget(max_targets_bytes, 256 * 1024 * 1024),
-    max_target_bytes: bounded_budget(max_target_bytes, 1024 * 1024 * 1024),
+    max_target_bytes: bounded_budget64(max_target_bytes, 1L << 40),
     max_root_rotations: bounded_budget(max_root_rotations, 1024),
-    max_delegated_roles: bounded_budget(max_delegated_roles, 1024),
+    max_delegated_roles: bounded_budget(max_delegated_roles, 64),
     max_json_depth: bounded_budget(max_json_depth, 256),
     max_json_nodes: bounded_budget(max_json_nodes, 1000000),
   }
@@ -66,6 +67,11 @@ pub fn budgets(
 ///|
 fn bounded_budget(value : Int, ceiling : Int) -> Int {
   if value < 1 { 1 } else if value > ceiling { ceiling } else { value }
+}
+
+///|
+fn bounded_budget64(value : Int64, ceiling : Int64) -> Int64 {
+  if value < 1L { 1L } else if value > ceiling { ceiling } else { value }
 }
 
 ///|
@@ -81,6 +87,16 @@ fn wire_limits(max_bytes : Int, budget : Budgets) -> @wire.Limits {
 fn guard_size(label : String, bytes : Bytes, maximum : Int) -> Result[Unit, ClientError] {
   if bytes.length() > maximum {
     Err(ResourceLimit(label, bytes.length(), maximum))
+  } else {
+    Ok(())
+  }
+}
+
+///|
+fn guard_target_size(label : String, bytes : Bytes, maximum : Int64) -> Result[Unit, ClientError] {
+  let size = bytes.length().to_int64()
+  if size > maximum {
+    Err(TargetResourceLimit(label, size, maximum))
   } else {
     Ok(())
   }

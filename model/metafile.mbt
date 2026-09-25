@@ -100,10 +100,13 @@ pub fn parse_timestamp(raw : Bytes, limits? : @wire.Limits = @wire.limits()) -> 
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  ignore(match object(meta, "signed.meta") {
+  let entries = match object(meta, "signed.meta") {
     Ok(entries) => entries
     Err(error) => return Err(error)
-  })
+  }
+  if entries.length() != 1 {
+    return Err(InvalidValue("signed.meta", "timestamp may describe only snapshot.json"))
+  }
   let snapshot = match field(meta, "snapshot.json", "signed.meta") {
     Ok(value) => value
     Err(error) => return Err(error)

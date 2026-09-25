@@ -2,7 +2,7 @@
 /// A target descriptor binds one relative target path to exact bytes.
 pub struct TargetFile {
   path : String
-  length : Int
+  length : Int64
   sha256 : String
   custom : @wire.Value?
 }
@@ -11,7 +11,7 @@ pub struct TargetFile {
 pub fn TargetFile::path(self : TargetFile) -> String { self.path }
 
 ///|
-pub fn TargetFile::length(self : TargetFile) -> Int { self.length }
+pub fn TargetFile::length(self : TargetFile) -> Int64 { self.length }
 
 ///|
 pub fn TargetFile::sha256(self : TargetFile) -> String { self.sha256 }
@@ -45,7 +45,11 @@ fn target_file(path : String, raw : @wire.Value) -> Result[TargetFile, ModelErro
     Ok(entries) => entries
     Err(error) => return Err(error)
   })
-  let length = match nonnegative_field(raw, "length", "signed.targets." + path) {
+  let length_value = match field(raw, "length", "signed.targets." + path) {
+    Ok(value) => value
+    Err(error) => return Err(error)
+  }
+  let length = match nonnegative_int64(length_value, "signed.targets." + path + ".length") {
     Ok(value) => value
     Err(error) => return Err(error)
   }

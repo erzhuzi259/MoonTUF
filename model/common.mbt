@@ -124,21 +124,31 @@ fn nonnegative_int(value : @wire.Value, path : String) -> Result[Int, ModelError
 }
 
 ///|
+/// Target-file sizes can exceed the addressable size of one in-memory Bytes
+/// value. Streaming verification therefore retains them as signed 64-bit
+/// integers, while metadata document sizes stay bounded Int values.
+fn nonnegative_int64(value : @wire.Value, path : String) -> Result[Int64, ModelError] {
+  let lexeme = match value.as_integer() {
+    Some(number) => number
+    None => return Err(WrongType(path))
+  }
+  let parsed : Int64 = @string.parse_int64(lexeme) catch {
+    _ => return Err(InvalidValue(path, "integer exceeds 64-bit length limit"))
+  }
+  if parsed < 0L {
+    Err(InvalidValue(path, "expected nonnegative integer"))
+  } else {
+    Ok(parsed)
+  }
+}
+
+///|
 fn positive_field(value : @wire.Value, name : String, parent : String) -> Result[Int, ModelError] {
   let child = match field(value, name, parent) {
     Ok(found) => found
     Err(error) => return Err(error)
   }
   positive_int(child, parent + "." + name)
-}
-
-///|
-fn nonnegative_field(value : @wire.Value, name : String, parent : String) -> Result[Int, ModelError] {
-  let child = match field(value, name, parent) {
-    Ok(found) => found
-    Err(error) => return Err(error)
-  }
-  nonnegative_int(child, parent + "." + name)
 }
 
 ///|

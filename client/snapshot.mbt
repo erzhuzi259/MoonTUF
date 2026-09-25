@@ -14,7 +14,7 @@ fn check_metafile(
   match description.length() {
     Some(expected) =>
       if raw.length() != expected {
-        return Err(LengthMismatch(name, expected, raw.length()))
+        return Err(LengthMismatch(name, expected.to_int64(), raw.length().to_int64()))
       }
     None => ()
   }

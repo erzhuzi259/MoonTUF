@@ -41,3 +41,11 @@ test "delegations reject unsupported succinct roles" {
   )
   assert_true(parse_targets(raw) is Err(InvalidValue(_, _)))
 }
+
+///|
+test "target length supports multi-gigabyte streams without truncation" {
+  let raw = @utf8.encode(
+    "{\"signed\":{\"_type\":\"targets\",\"spec_version\":\"1.0.0\",\"version\":1,\"expires\":\"2030-01-01T00:00:00Z\",\"targets\":{\"models/large.bin\":{\"length\":3000000000,\"hashes\":{\"sha256\":\"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad\"}}}},\"signatures\":[]}",
+  )
+  assert_eq(parse_targets(raw).unwrap().target("models/large.bin").unwrap().length(), 3000000000L)
+}
