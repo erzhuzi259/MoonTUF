@@ -110,6 +110,8 @@ pub fn diagnose(error : @client.ClientError) -> Diagnostic {
     @client.Trust(problem) => trust_diagnostic(problem)
     @client.InvalidStartTime(_) =>
       diagnostic("clock.invalid_start", "clock", "Update start time must be strict UTC.", false)
+    @client.ClockRollback(_, _) =>
+      diagnostic("clock.rollback", "clock", "Update start time moved backwards.", false)
     @client.Expired(role) =>
       diagnostic("metadata.expired", role, "Metadata expired before the update began.", false)
     @client.MissingStage(stage) =>

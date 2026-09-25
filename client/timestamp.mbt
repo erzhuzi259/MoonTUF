@@ -33,6 +33,9 @@ pub fn Client::accept_timestamp(
       return Err(Rollback("timestamp", old_version, new_version))
     }
     if new_version == old_version {
+      if @model.expired(candidate.common().expires(), self.update_start) {
+        return Err(Expired("timestamp"))
+      }
       return Err(Unchanged("timestamp", new_version))
     }
     let old_snapshot = previous.snapshot().version()

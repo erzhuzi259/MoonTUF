@@ -3,6 +3,7 @@ pub(all) enum ClientError {
   Model(@model.ModelError)
   Trust(@trust.TrustError)
   InvalidStartTime(String)
+  ClockRollback(String, String)
   Expired(String)
   MissingStage(String)
   VersionMismatch(String, Int, Int)
@@ -157,6 +158,33 @@ pub fn Client::targets_version(self : Client) -> Int? {
 ///|
 pub fn Client::update_start(self : Client) -> String {
   self.update_start
+}
+
+///|
+/// Start another update cycle while retaining rollback baselines. The host
+/// supplies one fixed UTC instant for the whole cycle; moving the clock
+/// backwards relative to the last cycle is rejected rather than silently
+/// reviving expired metadata.
+pub fn Client::begin_update(
+  self : Client,
+  new_start : String,
+) -> Result[Client, ClientError] {
+  if !@model.valid_utc_time(new_start) {
+    return Err(InvalidStartTime(new_start))
+  }
+  if new_start < self.update_start {
+    return Err(ClockRollback(self.update_start, new_start))
+  }
+  Ok({
+    root: self.root,
+    timestamp: self.timestamp,
+    snapshot: self.snapshot,
+    previous_snapshot: self.previous_snapshot,
+    targets: self.targets,
+    update_start: new_start,
+    budget: self.budget,
+    root_rotations: 0,
+  })
 }
 
 ///|
