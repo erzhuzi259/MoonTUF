@@ -16,5 +16,7 @@ implementation and conformance tests are used as behavioral comparison only:
 [tuf-conformance](https://github.com/theupdateframework/tuf-conformance).
 No source files from those projects are copied into MoonTUF.
 
-Synthetic fixtures written for this project will be documented alongside the
-tests. Any later imported vector must include its source and license here.
+`testkit/fixture.mbt` creates synthetic metadata and signatures from fixed
+public test seeds. The scenario bytes and fixture code are original to this
+repository; no private or production signing material is included. Any later
+imported vector must include its source and license here.
