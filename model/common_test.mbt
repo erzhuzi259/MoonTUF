@@ -46,6 +46,25 @@ test "same signer cannot appear twice in an envelope" {
 }
 
 ///|
+test "large signature list preserves order and rejects a late duplicate" {
+  let mut entries = ""
+  for index in 0..<512 {
+    if index > 0 {
+      entries += ","
+    }
+    entries += "{\"keyid\":\"key-" + index.to_string() + "\",\"sig\":\"aa\"}"
+  }
+  let prefix = "{\"signed\":{},\"signatures\":["
+  let envelope = parse_envelope(@utf8.encode(prefix + entries + "]}")).unwrap()
+  let signatures = envelope.signatures()
+  assert_eq(signatures.length(), 512)
+  assert_eq(signatures[0].keyid(), "key-0")
+  assert_eq(signatures[511].keyid(), "key-511")
+  let repeated = prefix + entries + ",{\"keyid\":\"key-256\",\"sig\":\"bb\"}]}"
+  assert_true(parse_envelope(@utf8.encode(repeated)) is Err(DuplicateItem(_)))
+}
+
+///|
 test "UTC expiry parser validates Gregorian dates" {
   assert_true(valid_utc_time("2028-02-29T23:59:59Z"))
   assert_false(valid_utc_time("2027-02-29T23:59:59Z"))

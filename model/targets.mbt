@@ -190,7 +190,7 @@ fn string_list(
 ///|
 fn delegated_role(
   raw : @wire.Value,
-  keys : Array[PublicKey],
+  known_keyids : Array[String],
 ) -> Result[DelegatedRole, ModelError] {
   ignore(
     match object(raw, "signed.delegations.roles[]") {
@@ -206,7 +206,7 @@ fn delegated_role(
   if !safe_target_path(name) || name.has_suffix(".json") {
     return Err(InvalidValue(parent + ".name", "unsafe or reserved role name"))
   }
-  let role_keys = match read_role(name, raw, keys) {
+  let role_keys = match read_role(name, raw, known_keyids) {
     Ok(value) => value
     Err(error) => return Err(error)
   }
@@ -305,6 +305,7 @@ fn parse_delegations(raw : @wire.Value) -> Result[Delegations, ModelError] {
     Err(error) => return Err(error)
   }
   let keys : Array[PublicKey] = []
+  let known_keyids : Array[String] = []
   for entry in key_entries {
     let (keyid, raw_key) = entry
     let key = match read_key(keyid, raw_key) {
@@ -312,7 +313,9 @@ fn parse_delegations(raw : @wire.Value) -> Result[Delegations, ModelError] {
       Err(error) => return Err(error)
     }
     keys.push(key)
+    known_keyids.push(keyid)
   }
+  known_keyids.sort()
   let role_values = match field(raw, "roles", "signed.delegations") {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -324,17 +327,15 @@ fn parse_delegations(raw : @wire.Value) -> Result[Delegations, ModelError] {
   let roles : Array[DelegatedRole] = []
   let names : Array[String] = []
   for raw_role in role_items {
-    let role = match delegated_role(raw_role, keys) {
+    let role = match delegated_role(raw_role, known_keyids) {
       Ok(value) => value
       Err(error) => return Err(error)
     }
-    if names.contains(role.name()) {
-      return Err(
-        DuplicateItem("signed.delegations.roles[].name=" + role.name()),
-      )
-    }
     names.push(role.name())
     roles.push(role)
+  }
+  if sorted_duplicate(names) is Some(name) {
+    return Err(DuplicateItem("signed.delegations.roles[].name=" + name))
   }
   Ok({ keys, roles, })
 }

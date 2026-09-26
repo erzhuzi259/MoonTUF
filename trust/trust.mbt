@@ -8,21 +8,46 @@ pub(all) enum TrustError {
 } derive(Debug)
 
 ///|
-fn find_key(
+fn contains_sorted_keyid(keys : Array[String], keyid : String) -> Bool {
+  let mut first = 0
+  let mut end = keys.length()
+  while first < end {
+    let middle = first + (end - first) / 2
+    if keys[middle] < keyid {
+      first = middle + 1
+    } else {
+      end = middle
+    }
+  }
+  first < keys.length() && keys[first] == keyid
+}
+
+///|
+fn find_sorted_key(
   keys : Array[@model.PublicKey],
   keyid : String,
 ) -> @model.PublicKey? {
-  for key in keys {
-    if key.keyid() == keyid {
-      return Some(key)
+  let mut first = 0
+  let mut end = keys.length()
+  while first < end {
+    let middle = first + (end - first) / 2
+    if keys[middle].keyid() < keyid {
+      first = middle + 1
+    } else {
+      end = middle
     }
   }
-  None
+  if first < keys.length() && keys[first].keyid() == keyid {
+    Some(keys[first])
+  } else {
+    None
+  }
 }
 
 ///|
 /// Count only distinct, authorized, correctly verified signers. The envelope
-/// parser rejects duplicate key IDs before this function is called.
+/// parser rejects duplicate key IDs before this function is called. Sorted
+/// indices prevent linear scans for every untrusted signature.
 pub fn verify_threshold(
   envelope : @model.Envelope,
   keys : Array[@model.PublicKey],
@@ -33,15 +58,26 @@ pub fn verify_threshold(
   if threshold < 1 || threshold > keyids.length() {
     return Err(InvalidThreshold(threshold, keyids.length()))
   }
+  let authorized = keyids.copy()
+  authorized.sort()
+  let key_index = keys.copy()
+  key_index.sort_by(fn(left, right) {
+    if left.keyid() < right.keyid() {
+      -1
+    } else if left.keyid() > right.keyid() {
+      1
+    } else {
+      0
+    }
+  })
   let signed = envelope.canonical_signed()
   let mut valid = 0
-  let seen : Array[String] = []
   for signature in envelope.signatures() {
     let id = signature.keyid()
-    if !keyids.contains(id) || seen.contains(id) {
+    if !contains_sorted_keyid(authorized, id) {
       continue
     }
-    let key = match find_key(keys, id) {
+    let key = match find_sorted_key(key_index, id) {
       Some(value) => value
       None => return Err(UnsupportedKey(id))
     }
@@ -50,7 +86,6 @@ pub fn verify_threshold(
       Ok(value) => value
       Err(_) => return Err(MalformedSignature(id))
     }
-    seen.push(id)
     if verified {
       valid += 1
     }

@@ -6,6 +6,24 @@ size `M`, parsing and canonicalization require `O(M)` storage and roughly
 signing bytes. Signature verification adds one Ed25519 operation per distinct
 authorized signature inspected, bounded by role keys and metadata size.
 
+Attacker-controlled signature IDs and delegated-role names are now copied,
+sorted and scanned for duplicates. For `S` signatures and `R` delegated
+roles, this changes duplicate detection from worst-case `O(S² + R²)` to
+`O(S log S + R log R)` time and `O(S + R)` temporary space. Each metadata
+document prepares one sorted key-ID index; role key references then use
+`O(log K)` membership checks instead of scanning `K` declared keys. This
+matters when a valid byte/node budget still permits thousands of small JSON
+entries. The additional arrays are bounded by the same parsed metadata and
+do not alter trusted role order or signature order.
+
+Threshold verification also copies and sorts the authorized key IDs (`A`)
+and available public keys (`K`) once, then probes each of `S` signatures by
+binary search. Its non-cryptographic lookup cost changes from worst-case
+`O(S(A + K + S))` to `O(A log A + K log K + S(log A + log K))`, with
+`O(A + K)` temporary space. For a single signature and very large key sets,
+the sorting can cost more than the former scan; the benefit is bounded
+worst-case work when untrusted envelopes contain many signatures.
+
 The public `Envelope::signed()` and `TargetFile::custom()` getters copy the
 mutable JSON containers recursively. A returned tree of `N` nodes costs
 `O(N)` time and space, with stack depth bounded by the parser's nesting limit.

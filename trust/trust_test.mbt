@@ -48,3 +48,20 @@ test "missing root signature does not bootstrap trust" {
   let root = @model.parse_root(@utf8.encode(unsigned)).unwrap()
   assert_true(verify_root_self(root) is Err(ThresholdNotMet(_, _, _)))
 }
+
+///|
+test "many unknown signatures do not count before an authorized signer" {
+  let raw = @utf8.decode(signed_root_fixture()) catch {
+    _ => abort("invalid fixture")
+  }
+  let mut unknown = ""
+  for index in 0..<512 {
+    unknown += "{\"keyid\":\"unknown-\{index}\",\"sig\":\"00\"},"
+  }
+  let augmented = raw.replace(
+    old="\"signatures\":[",
+    new="\"signatures\":[" + unknown,
+  )
+  let root = @model.parse_root(@utf8.encode(augmented)).unwrap()
+  assert_true(verify_root_self(root) is Ok(1))
+}

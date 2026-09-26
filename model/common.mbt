@@ -62,6 +62,36 @@ fn copy_wire_value(value : @wire.Value) -> @wire.Value {
 }
 
 ///|
+/// Detect duplicate attacker-supplied identifiers without a quadratic scan.
+/// Keep the original array order intact for callers and diagnostics.
+fn sorted_duplicate(values : Array[String]) -> String? {
+  let ordered = values.copy()
+  ordered.sort()
+  for index in 1..<ordered.length() {
+    if ordered[index - 1] == ordered[index] {
+      return Some(ordered[index])
+    }
+  }
+  None
+}
+
+///|
+/// Membership in an identifier index prepared with Array::sort().
+fn sorted_contains(values : Array[String], wanted : String) -> Bool {
+  let mut first = 0
+  let mut end = values.length()
+  while first < end {
+    let middle = first + (end - first) / 2
+    if values[middle] < wanted {
+      first = middle + 1
+    } else {
+      end = middle
+    }
+  }
+  first < values.length() && values[first] == wanted
+}
+
+///|
 /// Return a detached AST. Mutating its dictionaries or lists cannot change
 /// the payload represented by this envelope's cached raw and signed bytes.
 pub fn Envelope::signed(self : Envelope) -> @wire.Value {
@@ -353,11 +383,11 @@ pub fn parse_envelope(
       Ok(value) => value
       Err(error) => return Err(error)
     }
-    if seen.contains(keyid) {
-      return Err(DuplicateItem("envelope.signatures[].keyid=" + keyid))
-    }
     seen.push(keyid)
     signatures.push({ keyid, sig, })
+  }
+  if sorted_duplicate(seen) is Some(keyid) {
+    return Err(DuplicateItem("envelope.signatures[].keyid=" + keyid))
   }
   Ok({ raw, signed, canonical_signed: @wire.canonical(signed), signatures, })
 }

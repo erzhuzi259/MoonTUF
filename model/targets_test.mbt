@@ -80,6 +80,27 @@ test "delegations reject unsupported succinct roles" {
 }
 
 ///|
+test "delegation parser retains order and rejects duplicate role names" {
+  let public_hex = "0000000000000000000000000000000000000000000000000000000000000000"
+  let key_json = "{\"keytype\":\"ed25519\",\"scheme\":\"ed25519\",\"keyval\":{\"public\":\"\{public_hex}\"}}"
+  let key = @wire.parse(@utf8.encode(key_json)).unwrap()
+  let keyid = @crypto.sha256_hex(@wire.canonical(key))
+  let first = "{\"name\":\"plugins/a\",\"keyids\":[\"\{keyid}\"],\"threshold\":1,\"paths\":[\"plugins/*\"]}"
+  let second = "{\"name\":\"plugins/b\",\"keyids\":[\"\{keyid}\"],\"threshold\":1,\"paths\":[\"plugins/*\"]}"
+  let prefix = "{\"signed\":{\"_type\":\"targets\",\"spec_version\":\"1.0.0\",\"version\":1,\"expires\":\"2030-01-01T00:00:00Z\",\"targets\":{},\"delegations\":{\"keys\":{\"\{keyid}\":\{key_json}},\"roles\":["
+  let suffix = "]}},\"signatures\":[]}"
+  let valid = @utf8.encode(prefix + first + "," + second + suffix)
+  let roles = parse_targets(valid).unwrap().delegations().unwrap().roles()
+  assert_eq(roles.length(), 2)
+  assert_eq(roles[0].name(), "plugins/a")
+  assert_eq(roles[1].name(), "plugins/b")
+  let duplicate = @utf8.encode(
+    prefix + first + "," + second + "," + first + suffix,
+  )
+  assert_true(parse_targets(duplicate) is Err(DuplicateItem(_)))
+}
+
+///|
 test "target length supports multi-gigabyte streams without truncation" {
   let raw = @utf8.encode(
     "{\"signed\":{\"_type\":\"targets\",\"spec_version\":\"1.0.0\",\"version\":1,\"expires\":\"2030-01-01T00:00:00Z\",\"targets\":{\"models/large.bin\":{\"length\":3000000000,\"hashes\":{\"sha256\":\"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad\"}}}},\"signatures\":[]}",

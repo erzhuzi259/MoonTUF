@@ -2,6 +2,9 @@
 
 ## 0.1.0 — local development
 
+- Removed quadratic duplicate scans for untrusted signature and delegation
+  identifiers; indexed declared-key lookup and threshold verification to
+  bound work for large, attacker-controlled signature lists.
 - Reject direct online-stage acceptance until the root chain is finished and
   each upstream metadata role remains fresh at the fixed update start time.
 - Made interrupted refreshes resumable with the retained timestamp pins and

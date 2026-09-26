@@ -26,6 +26,21 @@ test "root parser rejects unattainable threshold" {
 }
 
 ///|
+test "root role rejects repeated or undeclared signing key ids" {
+  let root = parse_root(root_fixture(1)).unwrap()
+  let id = root.keys()[0].keyid()
+  let text = @utf8.decode(root_fixture(1)) catch { _ => abort("fixture") }
+  let one = "\"keyids\":[\"\{id}\"]"
+  let repeated = text.replace(old=one, new="\"keyids\":[\"\{id}\",\"\{id}\"]")
+  assert_true(parse_root(@utf8.encode(repeated)) is Err(DuplicateItem(_)))
+  let undeclared = text.replace(
+    old=one,
+    new="\"keyids\":[\"not-a-declared-key\"]",
+  )
+  assert_true(parse_root(@utf8.encode(undeclared)) is Err(InvalidValue(_, _)))
+}
+
+///|
 test "root parser requires every top-level role" {
   assert_true(
     parse_root(root_fixture(1, omit_targets=true)) is Err(MissingField(_)),

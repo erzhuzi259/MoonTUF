@@ -136,7 +136,7 @@ fn read_key(keyid : String, raw : @wire.Value) -> Result[PublicKey, ModelError] 
 fn read_role(
   name : String,
   raw : @wire.Value,
-  keys : Array[PublicKey],
+  known_keyids : Array[String],
 ) -> Result[RoleKeys, ModelError] {
   ignore(
     match object(raw, "signed.roles." + name) {
@@ -158,22 +158,15 @@ fn read_role(
       Ok(value) => value
       Err(error) => return Err(error)
     }
-    if keyids.contains(id) {
-      return Err(DuplicateItem("signed.roles." + name + ".keyids=" + id))
-    }
-    let mut found = false
-    for key in keys {
-      if key.keyid == id {
-        found = true
-        break
-      }
-    }
-    if !found {
+    if !sorted_contains(known_keyids, id) {
       return Err(
         InvalidValue("signed.roles." + name, "missing declared key " + id),
       )
     }
     keyids.push(id)
+  }
+  if sorted_duplicate(keyids) is Some(id) {
+    return Err(DuplicateItem("signed.roles." + name + ".keyids=" + id))
   }
   let threshold = match
     positive_field(raw, "threshold", "signed.roles." + name) {
@@ -225,6 +218,7 @@ pub fn parse_root(
     Err(error) => return Err(error)
   }
   let keys : Array[PublicKey] = []
+  let known_keyids : Array[String] = []
   for entry in key_entries {
     let (keyid, raw_key) = entry
     let key = match read_key(keyid, raw_key) {
@@ -232,7 +226,9 @@ pub fn parse_root(
       Err(error) => return Err(error)
     }
     keys.push(key)
+    known_keyids.push(keyid)
   }
+  known_keyids.sort()
   let raw_roles = match field(signed, "roles", "signed") {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -244,7 +240,7 @@ pub fn parse_root(
   let roles : Array[(String, RoleKeys)] = []
   for entry in role_entries {
     let (name, raw_role) = entry
-    let role = match read_role(name, raw_role, keys) {
+    let role = match read_role(name, raw_role, known_keyids) {
       Ok(value) => value
       Err(error) => return Err(error)
     }
