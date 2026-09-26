@@ -5,6 +5,10 @@ pub fn Client::accept_targets(
   self : Client,
   raw : Bytes,
 ) -> Result[Client, ClientError] {
+  match self.check_snapshot_fresh() {
+    Ok(_) => ()
+    Err(error) => return Err(error)
+  }
   let snapshot = match self.snapshot {
     Some(value) => value
     None => return Err(MissingStage("snapshot"))

@@ -8,6 +8,8 @@ streaming, URL encoding and response metering. The crypto boundary includes
 an independent [RFC 8032 §7.1](https://www.rfc-editor.org/rfc/rfc8032.html#section-7.1)
 known-answer signature, and root tests cover the different rollback rules
 for online-key rotation versus root-only rotation.
+Staged acceptance tests also reject unfinished root chains and expired
+timestamp/snapshot parents before accepting their child metadata.
 
 ```sh
 moon fmt --check

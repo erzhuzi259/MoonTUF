@@ -2,6 +2,8 @@
 
 ## 0.1.0 — local development
 
+- Reject direct online-stage acceptance until the root chain is finished and
+  each upstream metadata role remains fresh at the fixed update start time.
 - Made interrupted refreshes resumable with the retained timestamp pins and
   expiry checks, even when the repository timestamp version is unchanged.
 - Isolated public signed/custom JSON trees from verified metadata through

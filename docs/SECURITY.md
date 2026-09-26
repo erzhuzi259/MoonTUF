@@ -14,6 +14,9 @@ Changing timestamp or snapshot signing authority in a dual-signed root update
 resets their old rollback baselines so a recovered repository can escape a
 fast-forward attack. The host must persist that root change before relying on
 new online metadata. A root-only key change does not reset these baselines.
+Direct staged calls must finish the root chain before accepting timestamp;
+snapshot and targets acceptance also reject expired upstream metadata. The
+fixed update time still governs all expiration checks within one cycle.
 
 Fetchers must enforce byte limits before buffering, including when a server
 omits or lies about Content-Length. The transport helper percent-encodes path

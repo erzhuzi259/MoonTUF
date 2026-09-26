@@ -37,13 +37,13 @@ pub fn Client::accept_snapshot(
   self : Client,
   raw : Bytes,
 ) -> Result[Client, ClientError] {
+  match self.check_timestamp_fresh() {
+    Ok(_) => ()
+    Err(error) => return Err(error)
+  }
   let timestamp = match self.timestamp {
     Some(value) => value
     None => return Err(MissingStage("timestamp"))
-  }
-  match self.check_root_fresh() {
-    Ok(_) => ()
-    Err(error) => return Err(error)
   }
   match
     check_metafile(

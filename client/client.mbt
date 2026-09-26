@@ -247,6 +247,48 @@ pub fn Client::check_root_fresh(self : Client) -> Result[Unit, ClientError] {
 }
 
 ///|
+fn Client::check_root_chain_fresh(self : Client) -> Result[Unit, ClientError] {
+  if !self.root_chain_complete {
+    return Err(MissingStage("root chain"))
+  }
+  self.check_root_fresh()
+}
+
+///|
+fn Client::check_timestamp_fresh(self : Client) -> Result[Unit, ClientError] {
+  match self.check_root_chain_fresh() {
+    Ok(_) => ()
+    Err(error) => return Err(error)
+  }
+  let timestamp = match self.timestamp {
+    Some(value) => value
+    None => return Err(MissingStage("timestamp"))
+  }
+  if @model.expired(timestamp.common().expires(), self.update_start) {
+    Err(Expired("timestamp"))
+  } else {
+    Ok(())
+  }
+}
+
+///|
+fn Client::check_snapshot_fresh(self : Client) -> Result[Unit, ClientError] {
+  match self.check_timestamp_fresh() {
+    Ok(_) => ()
+    Err(error) => return Err(error)
+  }
+  let snapshot = match self.snapshot {
+    Some(value) => value
+    None => return Err(MissingStage("snapshot"))
+  }
+  if @model.expired(snapshot.common().expires(), self.update_start) {
+    Err(Expired("snapshot"))
+  } else {
+    Ok(())
+  }
+}
+
+///|
 pub fn Client::ready(self : Client) -> Bool {
   self.check_complete_fresh() is Ok(_)
 }
@@ -256,26 +298,9 @@ pub fn Client::ready(self : Client) -> Bool {
 /// This returns the first missing or expired role instead of silently treating
 /// an unchanged timestamp as a usable complete update.
 pub fn Client::check_complete_fresh(self : Client) -> Result[Unit, ClientError] {
-  if !self.root_chain_complete {
-    return Err(MissingStage("root chain"))
-  }
-  match self.check_root_fresh() {
+  match self.check_snapshot_fresh() {
     Ok(_) => ()
     Err(error) => return Err(error)
-  }
-  let timestamp = match self.timestamp {
-    Some(value) => value
-    None => return Err(MissingStage("timestamp"))
-  }
-  if @model.expired(timestamp.common().expires(), self.update_start) {
-    return Err(Expired("timestamp"))
-  }
-  let snapshot = match self.snapshot {
-    Some(value) => value
-    None => return Err(MissingStage("snapshot"))
-  }
-  if @model.expired(snapshot.common().expires(), self.update_start) {
-    return Err(Expired("snapshot"))
   }
   let targets = match self.targets {
     Some(value) => value

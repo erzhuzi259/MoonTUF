@@ -64,3 +64,29 @@ test "targets cannot be used before all verification stages" {
     is Err(MissingStage(_)),
   )
 }
+
+///|
+test "targets cannot be accepted from an expired snapshot pin" {
+  let key = @testkit.signer(202)
+  let targets = @testkit.empty_targets(1, key)
+  let snapshot = @testkit.snapshot(
+    1,
+    1,
+    targets,
+    key,
+    expires="2027-01-01T00:00:00Z",
+  )
+  let timestamp = @testkit.timestamp(1, 1, snapshot, key)
+  let client = open_trusted_root(
+      @testkit.root(1, key, [key], expires="2040-01-01T00:00:00Z"),
+      "2026-09-25T00:00:00Z",
+    )
+    .unwrap()
+    .accept_timestamp(timestamp)
+    .unwrap()
+    .accept_snapshot(snapshot)
+    .unwrap()
+    .begin_update("2028-01-01T00:00:00Z")
+    .unwrap()
+  assert_true(client.accept_targets(targets) is Err(Expired("snapshot")))
+}

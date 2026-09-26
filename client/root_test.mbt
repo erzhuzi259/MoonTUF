@@ -97,6 +97,24 @@ test "online key rotation clears fast-forwarded timestamp baseline" {
 }
 
 ///|
+test "online metadata cannot advance before root chain is finished" {
+  let key = @testkit.signer(200)
+  let targets = @testkit.empty_targets(1, key)
+  let snapshot = @testkit.snapshot(1, 1, targets, key)
+  let timestamp = @testkit.timestamp(1, 1, snapshot, key)
+  let staged = open_trusted_root(
+      @testkit.root(1, key, [key]),
+      "2026-09-25T00:00:00Z",
+    )
+    .unwrap()
+    .advance_root(@testkit.root(2, key, [key]))
+    .unwrap()
+  assert_true(
+    staged.accept_timestamp(timestamp) is Err(MissingStage("root chain")),
+  )
+}
+
+///|
 test "root-only rotation retains online rollback baselines" {
   let old_key = @testkit.signer(52)
   let new_root_key = @testkit.signer(53)

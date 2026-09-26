@@ -6,7 +6,7 @@ pub fn Client::accept_timestamp(
   self : Client,
   raw : Bytes,
 ) -> Result[Client, ClientError] {
-  match self.check_root_fresh() {
+  match self.check_root_chain_fresh() {
     Ok(_) => ()
     Err(error) => return Err(error)
   }

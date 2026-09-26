@@ -19,6 +19,30 @@ test "snapshot accepts a pinned, signed version" {
 }
 
 ///|
+test "snapshot cannot be accepted from an expired timestamp pin" {
+  let key = @testkit.signer(201)
+  let targets = @testkit.empty_targets(1, key)
+  let snapshot = @testkit.snapshot(1, 1, targets, key)
+  let timestamp = @testkit.timestamp(
+    1,
+    1,
+    snapshot,
+    key,
+    expires="2027-01-01T00:00:00Z",
+  )
+  let client = open_trusted_root(
+      @testkit.root(1, key, [key], expires="2040-01-01T00:00:00Z"),
+      "2026-09-25T00:00:00Z",
+    )
+    .unwrap()
+    .accept_timestamp(timestamp)
+    .unwrap()
+    .begin_update("2028-01-01T00:00:00Z")
+    .unwrap()
+  assert_true(client.accept_snapshot(snapshot) is Err(Expired("timestamp")))
+}
+
+///|
 test "snapshot rejects raw hash and length mismatch before parsing" {
   let key = @testkit.signer(10)
   let targets = @testkit.empty_targets(1, key)
