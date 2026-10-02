@@ -17,6 +17,7 @@ pub(all) enum ClientError {
   RootRotationLimit(Int)
   TargetNotFound(String)
   MetadataUnavailable(String)
+  MetadataFetchFailure(String)
   DelegationLimit(Int)
   AlreadyFinished
   CheckpointMalformed(String)

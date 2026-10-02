@@ -12,6 +12,8 @@ TUF-conformant**. Do not use it as the sole authorization mechanism for
 production updates yet. The repository is intentionally local until the
 maintainer authorizes a GitHub push and Mooncakes publication.
 
+October additions: bounded and paged inventories of verified top-level targets (not delegated targets), plus explicit distinction between an absent next root and a failed fetch during refresh. See [October features](docs/OCTOBER_FEATURES.md) for trust prerequisites, limits, and tests.
+
 ## What it verifies
 
 - An out-of-band trusted root anchor; Ed25519 threshold signatures and
@@ -56,7 +58,7 @@ let client = @client.open_trusted_root(
   authenticated_root_bytes,
   "2026-09-25T00:00:00Z",
 ).unwrap()
-let outcome = client.refresh(fn(name) { host_load_metadata(name) })
+let outcome = client.refresh(fn(name) { host_load_metadata_response(name) })
 // Only continue when outcome.status() is Complete.
 let trusted = outcome.client()
 let rules = @admission.policy(prefix="plugins", max_bytes=64L * 1024L * 1024L).unwrap()
@@ -73,6 +75,12 @@ trustworthy UTC clock, limits reads before allocation, handles retries and
 redirects, stages files and commits a whole bundle atomically. A `VerifiedTarget`
 does not mean the file is safe to execute. Full boundaries are in
 [`docs/SECURITY.md`](docs/SECURITY.md).
+
+The refresh loader returns `MetadataPresent(bytes)`, `MetadataAbsent`, or
+`MetadataFailure`. Return `MetadataAbsent` for the next root only when the
+repository has authoritatively reported that it does not exist (for example
+an accepted 404 response). Timeouts, server errors and local read failures
+must return `MetadataFailure`; they never finish root rotation.
 
 ## Interoperability profile and limitations
 

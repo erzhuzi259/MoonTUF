@@ -22,10 +22,16 @@ Fetchers must enforce byte limits before buffering, including when a server
 omits or lies about Content-Length. The transport helper percent-encodes path
 bytes, but hosts must still restrict redirects, origin changes, decompression
 and cache behavior. Keep the exact bytes passed to `accept_*`; do not parse
-and reserialize before length/hash checks. Stage targets privately until
-`verify_download`, `TargetStream::finish`, or the entire `BundleSession`
-succeeds. The host handles atomic multi-file commit, rollback, permissions,
-and post-verification execution policy.
+and reserialize before length/hash checks.
+
+`Client::refresh` distinguishes a confirmed missing N+1 root from a fetch
+failure. Treat only an authoritative not-found response as `MetadataAbsent`;
+timeouts, HTTP/server failures, redirect rejection and local storage errors
+must be `MetadataFailure` so root probing cannot terminate silently.
+
+Stage targets privately until `verify_download`, `TargetStream::finish`, or
+the entire `BundleSession` succeeds. The host handles atomic multi-file
+commit, rollback, permissions, and post-verification execution policy.
 
 Choose budgets for each deployment; defaults are not universal guarantees.
 Log `report.diagnose(error).to_json()` rather than raw attacker-controlled

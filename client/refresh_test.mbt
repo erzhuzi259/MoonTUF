@@ -1,4 +1,58 @@
 ///|
+/// Existing offline fixtures use Option because absence is authoritative in
+/// their in-memory repository. Real fetchers must report failures separately.
+fn fixture_response(load : (String) -> Bytes?) -> (String) -> MetadataResponse {
+  fn(name) {
+    match load(name) {
+      Some(bytes) => MetadataPresent(bytes)
+      None => MetadataAbsent
+    }
+  }
+}
+
+///|
+test "root fetch failure cannot be mistaken for the end of root rotation" {
+  let key = @testkit.signer(60)
+  let client = open_trusted_root(
+    @testkit.root(1, key, [key]),
+    "2026-09-25T00:00:00Z",
+  ).unwrap()
+  let result = client.refresh(fn(name) {
+    if name == "2.root.json" {
+      MetadataFailure
+    } else {
+      abort("transport failure must stop before timestamp")
+    }
+  })
+  assert_true(result.status() is Failed(MetadataFetchFailure("2.root.json")))
+  assert_eq(result.client().root_version(), 1)
+  assert_eq(result.accepted().length(), 0)
+}
+
+///|
+test "root fetch failure retains only already authenticated rotations" {
+  let old_key = @testkit.signer(61)
+  let new_key = @testkit.signer(62)
+  let root2 = @testkit.root(2, new_key, [old_key, new_key])
+  let client = open_trusted_root(
+    @testkit.root(1, old_key, [old_key]),
+    "2026-09-25T00:00:00Z",
+  ).unwrap()
+  let result = client.refresh(fn(name) {
+    match name {
+      "2.root.json" => MetadataPresent(root2)
+      "3.root.json" => MetadataFailure
+      _ => abort("transport failure must stop before online metadata")
+    }
+  })
+  assert_true(result.status() is Failed(MetadataFetchFailure("3.root.json")))
+  assert_eq(result.client().root_version(), 2)
+  assert_false(result.client().ready())
+  assert_eq(result.accepted().length(), 1)
+  assert_eq(result.accepted()[0].name(), "2.root.json")
+}
+
+///|
 test "one-shot refresh composes four-role verification" {
   let key = @testkit.signer(26)
   let artifact = @utf8.encode("abc")
@@ -17,7 +71,7 @@ test "one-shot refresh composes four-role verification" {
       _ => None
     }
   }
-  let outcome = client.refresh(load)
+  let outcome = client.refresh(fixture_response(load))
   assert_true(outcome.status() is Complete)
   assert_true(outcome.client().ready())
   assert_eq(outcome.accepted().length(), 3)
@@ -27,7 +81,7 @@ test "one-shot refresh composes four-role verification" {
 }
 
 ///|
-test "refresh returns partial trusted state after later fetch failure" {
+test "refresh returns partial trusted state after later metadata absence" {
   let key = @testkit.signer(27)
   let snapshot = @testkit.snapshot(1, 1, @testkit.empty_targets(1, key), key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
@@ -42,26 +96,53 @@ test "refresh returns partial trusted state after later fetch failure" {
       None
     }
   }
-  let outcome = client.refresh(load)
+  let outcome = client.refresh(fixture_response(load))
   assert_true(outcome.status() is Failed(MetadataUnavailable("snapshot.json")))
   assert_eq(outcome.client().timestamp_version(), Some(1))
   assert_eq(outcome.client().snapshot_version(), None)
   assert_eq(outcome.accepted().length(), 1)
   let recovered = outcome
     .client()
-    .refresh(fn(name) {
-      match name {
-        "timestamp.json" => Some(timestamp)
-        "snapshot.json" => Some(snapshot)
-        "targets.json" => Some(@testkit.empty_targets(1, key))
-        _ => None
-      }
-    })
+    .refresh(
+      fixture_response(fn(name) {
+        match name {
+          "timestamp.json" => Some(timestamp)
+          "snapshot.json" => Some(snapshot)
+          "targets.json" => Some(@testkit.empty_targets(1, key))
+          _ => None
+        }
+      }),
+    )
   assert_true(recovered.status() is Complete)
   assert_true(recovered.client().ready())
   assert_eq(recovered.accepted().length(), 2)
   assert_eq(recovered.accepted()[0].name(), "snapshot.json")
   assert_eq(recovered.accepted()[1].name(), "targets.json")
+}
+
+///|
+test "snapshot fetch failure preserves accepted timestamp for retry" {
+  let key = @testkit.signer(63)
+  let targets = @testkit.empty_targets(1, key)
+  let snapshot = @testkit.snapshot(1, 1, targets, key)
+  let timestamp = @testkit.timestamp(1, 1, snapshot, key)
+  let client = open_trusted_root(
+    @testkit.root(1, key, [key]),
+    "2026-09-25T00:00:00Z",
+  ).unwrap()
+  let result = client.refresh(fn(name) {
+    match name {
+      "2.root.json" => MetadataAbsent
+      "timestamp.json" => MetadataPresent(timestamp)
+      "snapshot.json" => MetadataFailure
+      _ => abort("snapshot failure must stop before targets")
+    }
+  })
+  assert_true(result.status() is Failed(MetadataFetchFailure("snapshot.json")))
+  assert_eq(result.client().timestamp_version(), Some(1))
+  assert_eq(result.client().snapshot_version(), None)
+  assert_eq(result.accepted().length(), 1)
+  assert_eq(result.accepted()[0].name(), "timestamp.json")
 }
 
 ///|
@@ -74,26 +155,30 @@ test "refresh resumes missing targets without fetching a retained snapshot" {
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
-  let interrupted = initial.refresh(fn(name) {
-    match name {
-      "timestamp.json" => Some(timestamp)
-      "snapshot.json" => Some(snapshot)
-      _ => None
-    }
-  })
+  let interrupted = initial.refresh(
+    fixture_response(fn(name) {
+      match name {
+        "timestamp.json" => Some(timestamp)
+        "snapshot.json" => Some(snapshot)
+        _ => None
+      }
+    }),
+  )
   assert_true(
     interrupted.status() is Failed(MetadataUnavailable("targets.json")),
   )
   let recovered = interrupted
     .client()
-    .refresh(fn(name) {
-      match name {
-        "timestamp.json" => Some(timestamp)
-        "targets.json" => Some(targets)
-        "snapshot.json" => abort("retained snapshot should be reused")
-        _ => None
-      }
-    })
+    .refresh(
+      fixture_response(fn(name) {
+        match name {
+          "timestamp.json" => Some(timestamp)
+          "targets.json" => Some(targets)
+          "snapshot.json" => abort("retained snapshot should be reused")
+          _ => None
+        }
+      }),
+    )
   assert_true(recovered.status() is Complete)
   assert_true(recovered.client().ready())
   assert_eq(recovered.accepted().length(), 1)
@@ -117,14 +202,16 @@ test "resuming an equal timestamp preserves the original snapshot pin" {
   let replacement_timestamp = @testkit.timestamp(
     1, 2, replacement_snapshot, key,
   )
-  let recovered = partial.refresh(fn(name) {
-    match name {
-      "timestamp.json" => Some(replacement_timestamp)
-      "snapshot.json" => Some(snapshot)
-      "targets.json" => Some(targets)
-      _ => None
-    }
-  })
+  let recovered = partial.refresh(
+    fixture_response(fn(name) {
+      match name {
+        "timestamp.json" => Some(replacement_timestamp)
+        "snapshot.json" => Some(snapshot)
+        "targets.json" => Some(targets)
+        _ => None
+      }
+    }),
+  )
   assert_true(recovered.status() is Complete)
   assert_true(recovered.client().ready())
   assert_eq(recovered.client().snapshot_version(), Some(1))
@@ -167,7 +254,7 @@ test "incomplete retries cannot revive expired retained metadata" {
     .unwrap()
     .begin_update("2026-09-27T00:00:00Z")
     .unwrap()
-    .refresh(load)
+    .refresh(fixture_response(load))
   assert_true(stale_timestamp.status() is Failed(Expired("timestamp")))
   let stale_snapshot = initial
     .accept_timestamp(fresh_timestamp)
@@ -176,7 +263,7 @@ test "incomplete retries cannot revive expired retained metadata" {
     .unwrap()
     .begin_update("2026-09-27T00:00:00Z")
     .unwrap()
-    .refresh(load)
+    .refresh(fixture_response(load))
   assert_true(stale_snapshot.status() is Failed(Expired("snapshot")))
 }
 
@@ -201,7 +288,7 @@ test "refresh can rotate root then validate metadata with new key" {
       _ => None
     }
   }
-  let outcome = client.refresh(load)
+  let outcome = client.refresh(fixture_response(load))
   assert_true(outcome.status() is Complete)
   assert_eq(outcome.client().root_version(), 2)
   assert_eq(outcome.accepted().length(), 4)
@@ -226,7 +313,7 @@ test "refresh reports versioned repository names for consistent snapshots" {
       _ => None
     }
   }
-  let outcome = client.refresh(load)
+  let outcome = client.refresh(fixture_response(load))
   assert_true(outcome.status() is Complete)
   assert_eq(outcome.accepted().length(), 3)
   assert_eq(outcome.accepted()[0].name(), "timestamp.json")
@@ -259,12 +346,12 @@ test "unchanged timestamp cannot conceal stale retained snapshot" {
       "2026-09-25T00:00:00Z",
     )
     .unwrap()
-    .refresh(load)
+    .refresh(fixture_response(load))
     .client()
   assert_true(initial.ready())
   let next = initial.begin_update("2026-09-27T00:00:00Z").unwrap()
   assert_false(next.ready())
   assert_true(next.check_complete_fresh() is Err(Expired("snapshot")))
-  let outcome = next.refresh(load)
+  let outcome = next.refresh(fixture_response(load))
   assert_true(outcome.status() is Failed(Expired("snapshot")))
 }

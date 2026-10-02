@@ -11,6 +11,9 @@ authorities. _Avoid_: self-signed root, downloaded root.
 **Candidate root**: A proposed successor to the trusted root, accepted only
 through sequential old- and new-authority approval.
 
+**Absent successor root**: An authoritative indication that the repository
+has no next sequential root document. It is not a timeout or failed fetch.
+
 **Role**: A named authority for root, timestamp, snapshot, targets, or
 delegated targets metadata.
 

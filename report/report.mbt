@@ -251,6 +251,10 @@ pub fn diagnose(error : @client.ClientError) -> Diagnostic {
       diagnostic(
         "metadata.unavailable", stage, "Required metadata was not supplied.", true,
       )
+    @client.MetadataFetchFailure(stage) =>
+      diagnostic(
+        "metadata.fetch_failure", stage, "Metadata could not be fetched.", true,
+      )
     @client.DelegationLimit(_) =>
       diagnostic(
         "resource.delegations", "delegation", "Delegated role visit count exceeds its budget.",

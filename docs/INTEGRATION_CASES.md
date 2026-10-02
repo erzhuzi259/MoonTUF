@@ -25,6 +25,12 @@ success: feed the exact downloaded bytes through the client. For large files,
 use `open_download_stream` or `open_bundle_session`; finish each stream and
 atomically move staged files into place. Retry with a nondecreasing UTC time.
 
+For `Client::refresh`, report each load as `MetadataPresent(bytes)`,
+`MetadataAbsent`, or `MetadataFailure`. In particular, an absent next root
+must mean an authoritative not-found response. Do not map timeout, HTTP 5xx,
+redirect-policy failure or local I/O failure to `MetadataAbsent`; those must
+stop refresh as retryable fetch failures.
+
 `RefreshOutcome::accepted()` lists successfully accepted metadata in order.
 Each entry's `name()` is the actual repository request path, including a
 version prefix for rotated roots and consistent snapshots. It is not a

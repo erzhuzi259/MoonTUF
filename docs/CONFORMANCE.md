@@ -26,3 +26,7 @@ transport-agnostic core has no such adapter yet. A passing
 local suite is **not** evidence that the upstream [TUF conformance suite](https://github.com/theupdateframework/tuf-conformance)
 passes. That suite and independent security review remain future work. Do not
 advertise MoonTUF as a certified or audited TUF client.
+
+The upstream CLI contract, Linux test invocation, licensing and an adapter
+plan are recorded in [the conformance research note](../research/tuf-conformance-adapter.md).
+No upstream fixture was copied and no upstream suite result is claimed.

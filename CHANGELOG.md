@@ -2,6 +2,8 @@
 
 ## 0.1.0 — local development
 
+- Distinguished authoritative absence of the next root from a metadata fetch
+  failure in the refresh loader; transport faults now stop root probing.
 - Removed quadratic duplicate scans for untrusted signature and delegation
   identifiers; indexed declared-key lookup and threshold verification to
   bound work for large, attacker-controlled signature lists.

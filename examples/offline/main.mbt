@@ -38,7 +38,12 @@ fn run_single(
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
   let load = metadata_loader(timestamp, snapshot, targets)
   let base = @client.open_trusted_root(root, "2026-09-25T00:00:00Z").unwrap()
-  let refreshed = base.refresh(load)
+  let refreshed = base.refresh(fn(name) {
+    match load(name) {
+      Some(bytes) => @client.MetadataPresent(bytes)
+      None => @client.MetadataAbsent
+    }
+  })
   if !(refreshed.status() is @client.Complete) {
     abort("[\{label}] expected a complete metadata refresh")
   }
@@ -105,7 +110,12 @@ fn run_bundle() -> Unit {
       "2026-09-25T00:00:00Z",
     )
     .unwrap()
-    .refresh(load)
+    .refresh(fn(name) {
+      match load(name) {
+        Some(bytes) => @client.MetadataPresent(bytes)
+        None => @client.MetadataAbsent
+      }
+    })
   if !(refreshed.status() is @client.Complete) {
     abort("[bundle] expected a complete metadata refresh")
   }

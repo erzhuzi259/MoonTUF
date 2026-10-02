@@ -14,6 +14,9 @@ test "diagnostic codes remain stable and omit attacker-controlled path" {
 test "absence of metadata is retryable while bad signatures are not" {
   let unavailable = diagnose(@client.MetadataUnavailable("timestamp.json"))
   assert_true(unavailable.retryable())
+  let fetch_failed = diagnose(@client.MetadataFetchFailure("2.root.json"))
+  assert_eq(fetch_failed.code(), "metadata.fetch_failure")
+  assert_true(fetch_failed.retryable())
   let bad = diagnose(@client.Trust(@trust.ThresholdNotMet("root", 0, 1)))
   assert_false(bad.retryable())
   assert_eq(bad.code(), "trust.threshold")

@@ -160,7 +160,12 @@ test "root-only rotation retains online rollback baselines" {
       _ => None
     }
   }
-  let outcome = initial.refresh(load)
+  let outcome = initial.refresh(fn(name) {
+    match load(name) {
+      Some(bytes) => MetadataPresent(bytes)
+      None => MetadataAbsent
+    }
+  })
   assert_true(outcome.status() is Unchanged)
   assert_true(outcome.client().ready())
 }

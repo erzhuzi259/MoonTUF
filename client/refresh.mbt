@@ -6,6 +6,16 @@ pub(all) enum RefreshStatus {
 } derive(Debug)
 
 ///|
+/// The host must distinguish an authoritative absence (normally HTTP 404)
+/// from a transport, timeout, or local I/O failure. Only an absent N+1 root
+/// ends root probing; a failure must never silently complete the root chain.
+pub(all) enum MetadataResponse {
+  MetadataPresent(Bytes)
+  MetadataAbsent
+  MetadataFailure
+} derive(Debug)
+
+///|
 /// Metadata accepted during a refresh. Its name is the repository path that
 /// was requested, including a version prefix when consistent snapshots are
 /// enabled. The host may persist these documents in order after inspecting
@@ -61,21 +71,24 @@ fn outcome(
 ///|
 /// Drive a complete refresh over an injected metadata loader. The loader may
 /// be backed by memory, disk, a network client, or a test harness; MoonTUF does
-/// not perform I/O. Missing N+1 root means the root chain is complete, while
-/// missing any later top-level role is a failure. The outcome retains all
+/// not perform I/O. Only an authoritative absent N+1 root means the root chain
+/// is complete; a fetch failure is never interpreted as absence. Missing any
+/// later top-level role is a failure. The outcome retains all
 /// successfully accepted state even when a later stage fails. A retry with
 /// an equal timestamp resumes missing descendants using the retained pins;
 /// it never replaces trusted data with the equal-version candidate.
 pub fn Client::refresh(
   self : Client,
-  load : (String) -> Bytes?,
+  load : (String) -> MetadataResponse,
 ) -> RefreshOutcome {
   let mut current = self
   let accepted : Array[AcceptedMetadata] = []
   while current.next_root_name() is Some(name) {
     let candidate = match load(name) {
-      Some(bytes) => bytes
-      None => break
+      MetadataPresent(bytes) => bytes
+      MetadataAbsent => break
+      MetadataFailure =>
+        return outcome(current, Failed(MetadataFetchFailure(name)), accepted)
     }
     current = match current.advance_root(candidate) {
       Ok(value) => value
@@ -88,11 +101,17 @@ pub fn Client::refresh(
     Err(error) => return outcome(current, Failed(error), accepted)
   }
   let timestamp_raw = match load("timestamp.json") {
-    Some(bytes) => bytes
-    None =>
+    MetadataPresent(bytes) => bytes
+    MetadataAbsent =>
       return outcome(
         current,
         Failed(MetadataUnavailable("timestamp.json")),
+        accepted,
+      )
+    MetadataFailure =>
+      return outcome(
+        current,
+        Failed(MetadataFetchFailure("timestamp.json")),
         accepted,
       )
   }
@@ -115,11 +134,17 @@ pub fn Client::refresh(
       Err(error) => return outcome(current, Failed(error), accepted)
     }
     let snapshot_raw = match load(snapshot_name) {
-      Some(bytes) => bytes
-      None =>
+      MetadataPresent(bytes) => bytes
+      MetadataAbsent =>
         return outcome(
           current,
           Failed(MetadataUnavailable(snapshot_name)),
+          accepted,
+        )
+      MetadataFailure =>
+        return outcome(
+          current,
+          Failed(MetadataFetchFailure(snapshot_name)),
           accepted,
         )
     }
@@ -134,11 +159,17 @@ pub fn Client::refresh(
     Err(error) => return outcome(current, Failed(error), accepted)
   }
   let targets_raw = match load(targets_name) {
-    Some(bytes) => bytes
-    None =>
+    MetadataPresent(bytes) => bytes
+    MetadataAbsent =>
       return outcome(
         current,
         Failed(MetadataUnavailable(targets_name)),
+        accepted,
+      )
+    MetadataFailure =>
+      return outcome(
+        current,
+        Failed(MetadataFetchFailure(targets_name)),
         accepted,
       )
   }
