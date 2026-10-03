@@ -6,6 +6,8 @@ readme = "README.md"
 
 license = "Apache-2.0"
 
+repository = "https://github.com/erzhuzi259/MoonTUF"
+
 keywords = [
   "tuf",
   "software-update",

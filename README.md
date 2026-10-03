@@ -7,10 +7,28 @@ without coupling that decision to HTTP, disk layout, installation, or private
 key management. The same API serves application, plugin, firmware, model, rule,
 and internal artifact updates.
 
-Status: **local pre-release; not security-audited or independently certified as
-TUF-conformant**. Do not use it as the sole authorization mechanism for
-production updates yet. The repository is intentionally local until the
-maintainer authorizes a GitHub push and Mooncakes publication.
+Status: **0.1.0 initial release; not security-audited or independently certified
+as TUF-conformant**. Do not use it as the sole authorization mechanism for
+production updates yet.
+
+- Source: [erzhuzi259/MoonTUF](https://github.com/erzhuzi259/MoonTUF)
+- Package: [erzhuzi259/moontuf](https://mooncakes.io/docs/erzhuzi259/moontuf)
+- Maintainer: `erzhuzi259`
+
+## Install
+
+```sh
+moon add erzhuzi259/moontuf@0.1.0
+```
+
+Import the subpackages required by your host in `moon.pkg`, for example:
+
+```moonbit
+import {
+  "erzhuzi259/moontuf/client",
+  "erzhuzi259/moontuf/integrations/admission",
+}
+```
 
 October additions: bounded and paged inventories of verified top-level targets (not delegated targets), plus explicit distinction between an absent next root and a failed fetch during refresh. See [October features](docs/OCTOBER_FEATURES.md) for trust prerequisites, limits, and tests.
 
@@ -40,10 +58,15 @@ Install a recent MoonBit toolchain and run from this repository root:
 
 ```sh
 moon update
-moon check --deny-warn
-moon test --deny-warn
+moon fmt --check
+moon check --target all --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
+moon test --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
 moon run examples/offline
 ```
+
+The warning list is a scoped compiler migration baseline for existing derived
+methods, test package qualification and unused imports. All other warnings
+remain fatal, matching CI. It does not establish a warning-free build.
 
 The example uses **deterministic public test keys only**. It exercises five
 single-artifact scenarios and one atomic plugin bundle, including a rejected
@@ -110,7 +133,7 @@ Apache-2.0 applies to original code; cryptographic primitives are supplied by
 `moonbitstack/mooncrypt` 0.3.1 (Apache-2.0). No reference TUF implementation
 code was copied. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 Contributions and security reports are described in [`CONTRIBUTING.md`](CONTRIBUTING.md).
-Local build/test evidence and deliberately pending release gates are in
+Local build/test evidence and the original pending release gates are in
 [`docs/VERIFICATION.md`](docs/VERIFICATION.md).
 
 ## 十月第二轮：受信清单差异与缓存同步计划

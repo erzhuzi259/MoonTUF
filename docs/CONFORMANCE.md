@@ -13,14 +13,15 @@ timestamp/snapshot parents before accepting their child metadata.
 
 ```sh
 moon fmt --check
-moon check --deny-warn
-moon test --deny-warn
+moon check --target all --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
+moon test --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
 moon build
 moon run examples/offline
 ```
 
-The configured repository CI repeats standard checks and example smoke tests
-once pushed to GitHub; no remote run has occurred yet. The upstream TUF suite
+The repository CI repeats standard checks and example smoke tests. The scoped
+warning baseline matches the README and is not a warning-free claim. Release
+CI evidence is recorded in `RELEASE_0.1.0.md`. The upstream TUF suite
 requires an `init`/`refresh`/`download` HTTP-and-disk CLI adapter; MoonTUF's
 transport-agnostic core has no such adapter yet. A passing
 local suite is **not** evidence that the upstream [TUF conformance suite](https://github.com/theupdateframework/tuf-conformance)

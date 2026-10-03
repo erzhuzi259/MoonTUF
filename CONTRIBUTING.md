@@ -2,8 +2,12 @@
 
 Keep trust decisions deterministic and independent of HTTP or the filesystem.
 Every changed security invariant needs a positive and negative test. Run
-`moon fmt`, `moon check --deny-warn`, `moon test --deny-warn` and the offline
-example before proposing changes. Document new accepted TUF profiles and
+`moon fmt --check`,
+`moon check --target all --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'`,
+`moon test --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'`
+and the offline example before proposing changes. The scoped warning baseline
+matches CI; new warning categories must not be suppressed without justification.
+Document new accepted TUF profiles and
 unsupported cases in `docs/POUF.md`.
 
 Submit only code and fixtures whose license and provenance can be recorded in

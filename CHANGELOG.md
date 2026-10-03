@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 — local development
+## 0.1.0 — 2026-10-03
 
 - Distinguished authoritative absence of the next root from a metadata fetch
   failure in the refresh loader; transport faults now stop root probing.
@@ -33,7 +33,8 @@
 - Extended the CI plan with JavaScript backend tests and an offline smoke run
   after confirming 91/91 local JavaScript tests pass.
 
-No GitHub release or Mooncakes publication has been made.
+Initial public release under `erzhuzi259/moontuf`. Independent TUF
+conformance and security audits remain outstanding.
 
 ## 2026-10-03 — October maintenance additions
 

@@ -36,5 +36,8 @@ commit, rollback, permissions, and post-verification execution policy.
 Choose budgets for each deployment; defaults are not universal guarantees.
 Log `report.diagnose(error).to_json()` rather than raw attacker-controlled
 metadata. No independent security audit or official TUF conformance run has
-been completed. Before public release, establish a private vulnerability
-reporting channel; do not disclose a working exploit in a public issue.
+been completed. Report vulnerabilities through GitHub's private vulnerability
+reporting channel at
+[Report a vulnerability](https://github.com/erzhuzi259/MoonTUF/security/advisories/new).
+Include the affected version, reproduction and impact. Do not disclose a
+working exploit in a public issue.
