@@ -34,3 +34,8 @@
   after confirming 91/91 local JavaScript tests pass.
 
 No GitHub release or Mooncakes publication has been made.
+
+## 2026-10-03 — October maintenance additions
+
+- Add trusted top-level content differences and host-fingerprint cache synchronization plans.
+- Add regression tests, executable integration examples, source archives and October proposal fact drafts.
