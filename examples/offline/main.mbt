@@ -48,6 +48,19 @@ fn run_single(
     abort("[\{label}] expected a complete metadata refresh")
   }
   let client = refreshed.client()
+  let sync = client.plan_top_level_sync([], prefix~).unwrap()
+  try! assert_eq(sync.missing().length(), 1)
+  try! assert_eq(sync.missing()[0].path(), path)
+  try! assert_eq(
+    client
+    .diff_top_level_inventory(client, prefix~, max_changes=0)
+    .unwrap()
+    .unchanged(),
+    1,
+  )
+  println(
+    "[\{label}] trusted inventory comparison and cache synchronization: ok",
+  )
   let policy = @admission.policy(prefix~, max_bytes=4096L).unwrap()
   let decision = @admission.evaluate(client, path, policy, load).unwrap()
   match decision {
