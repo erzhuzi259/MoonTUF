@@ -28,6 +28,7 @@ local suite is **not** evidence that the upstream [TUF conformance suite](https:
 passes. That suite and independent security review remain future work. Do not
 advertise MoonTUF as a certified or audited TUF client.
 
-The upstream CLI contract, Linux test invocation, licensing and an adapter
-plan are recorded in [the conformance research note](../research/tuf-conformance-adapter.md).
+The upstream suite documents its CLI and execution requirements in the
+[official repository](https://github.com/theupdateframework/tuf-conformance).
+MoonTUF has not implemented the required HTTP-and-disk CLI adapter.
 No upstream fixture was copied and no upstream suite result is claimed.

@@ -17,7 +17,7 @@
 - Wasm、Wasm-GC、JS、Native 四后端 release 构建和完整测试通过，每后端 118/118。
 - 默认 Wasm-GC、JS、Native release 三种离线示例执行通过，覆盖五类单制品场景与多制品 bundle。
 - CI 使用 `--deny-warn`，现有编译器迁移警告仅定向基线：`-implicit_impl_as_method-test_unqualified_package-unused_package`；不声明完全无警告。
-- 发布源码：`b8c7238e3c61ec76293ab68ee8e72a5e45be6018`。
+- 发布源码：`caa543b0f7400ad72eb3ad2a6f4a4cc19652b2ec`。
 - 发布源码 CI：[37110919503](https://github.com/erzhuzi259/MoonTUF/actions/runs/37110919503)，Windows / Ubuntu portable 与 Ubuntu Native 作业全部成功。
 - Mooncakes 发布：`moon publish` 成功，服务端 `200 OK`；[公开包文档](https://mooncakes.io/docs/erzhuzi259/moontuf) HTTP 200。
 - 发布 ZIP SHA-256：`e5245fd9d8b165a78d4ee976278b66c3867fabcaa79970ffe05c554adb7640f5`；100 个归档条目，无 `.git`、`.mooncakes`、`_build` 或本地发布备份目录。
