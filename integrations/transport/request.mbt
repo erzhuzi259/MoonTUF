@@ -137,7 +137,11 @@ pub fn RepositoryUrls::target_request(
     url,
     max_bytes: ticket.length(),
     exact_bytes: Some(ticket.length()),
-    sha256: Some(ticket.sha256()),
+    sha256: if ticket.sha256().is_empty() {
+      None
+    } else {
+      Some(ticket.sha256())
+    },
   })
 }
 

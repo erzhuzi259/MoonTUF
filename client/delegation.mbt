@@ -118,7 +118,9 @@ fn Client::search_delegations(
       continue
     }
     let name = role.name()
-    if visited.contains(name) {
+    // Top-level targets has already been visited before this walk. Do not
+    // re-enter it under delegated authority or charge it to the child budget.
+    if name == "targets" || visited.contains(name) {
       continue
     }
     if visited.length() >= self.budget.max_delegated_roles {

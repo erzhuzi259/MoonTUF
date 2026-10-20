@@ -3,10 +3,11 @@
 Keep trust decisions deterministic and independent of HTTP or the filesystem.
 Every changed security invariant needs a positive and negative test. Run
 `moon fmt --check`,
-`moon check --target all --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'`,
-`moon test --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'`
-and the offline example before proposing changes. The scoped warning baseline
-matches CI; new warning categories must not be suppressed without justification.
+`moon check --target all --deny-warn`,
+`moon test --deny-warn`
+and the examples before proposing changes. All warnings are fatal in CI.
+For the affected Windows 20261016 toolchain use `tools/windows/moon.ps1`;
+see `docs/WINDOWS_TOOLCHAIN.md`.
 Document new accepted TUF profiles and
 unsupported cases in `docs/POUF.md`.
 

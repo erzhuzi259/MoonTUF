@@ -35,9 +35,30 @@ commit, rollback, permissions, and post-verification execution policy.
 
 Choose budgets for each deployment; defaults are not universal guarantees.
 Log `report.diagnose(error).to_json()` rather than raw attacker-controlled
-metadata. No independent security audit or official TUF conformance run has
-been completed. Report vulnerabilities through GitHub's private vulnerability
+metadata. The official upstream suite has run against the actual MoonBit
+verifier; exact revisions, results and optional expected failures are in
+[CONFORMANCE](CONFORMANCE.md). Passing tests is not a security audit or
+independent certification. Report vulnerabilities through GitHub's private vulnerability
 reporting channel at
 [Report a vulnerability](https://github.com/erzhuzi259/MoonTUF/security/advisories/new).
 Include the affected version, reproduction and impact. Do not disclose a
 working exploit in a public issue.
+
+0.2.0 adds RSA-PSS-SHA256, ECDSA P-256 and SHA-512. Key parsing checks
+algorithms/curve identifiers and DER structure. RSA modulus/exponent bounds
+limit verification work. Unsupported keys cannot contribute to a signature
+threshold; supported but malformed key material is rejected. An invalid
+individual signature contributes zero and cannot prevent other distinct valid
+signatures from meeting a threshold. All recognized declared hashes must match.
+
+MTUF2 restores partial state only against the caller's exact latest trusted
+root. It is not an authenticated remote update bundle or protection against a
+local attacker replacing both anchor and state. Delegated caches are reverified
+against the current parent and snapshot. Root online-key recovery intentionally
+resets appropriate online rollback baselines; the host must persist that change.
+
+Batch resolution shares bytes, not authorization. Verify candidate bytes after
+planning and stage the entire release before the host commits it. Mirror
+fallback fixes one verified descriptor and never trusts a mirror's own metadata
+or digest claims. Fetch callbacks enforce their supplied length budget while
+reading; checking a buffer afterward cannot undo an unbounded allocation.

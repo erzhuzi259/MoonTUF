@@ -117,7 +117,10 @@ fn read_key(keyid : String, raw : @wire.Value) -> Result[PublicKey, ModelError] 
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  if !@crypto.valid_public_key(keytype, scheme, public_hex) {
+  let known_scheme = (keytype == "ed25519" && scheme == "ed25519") ||
+    (keytype == "rsa" && scheme == "rsassa-pss-sha256") ||
+    (keytype == "ecdsa" && scheme == "ecdsa-sha2-nistp256")
+  if known_scheme && !@crypto.valid_public_key(keytype, scheme, public_hex) {
     return Err(
       InvalidValue(
         "signed.keys." + keyid,

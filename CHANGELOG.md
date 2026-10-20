@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.0 — Necessary TUF client scope and ecosystem integration
+
+- Add RSA-PSS-SHA256, ECDSA P-256/SHA256 and SHA-512 metadata/target hashes.
+- Extend shell path matching, opaque role names and direct TAP15 succinct bins.
+- Add protected resumable local state, persistent verified delegated-role hooks,
+  and reference HTTP/disk integration for real upstream conformance execution.
+- Add bounded cross-delegation batch resolution and exact-byte mirror fallback,
+  with asserted runnable examples and regression tests.
+- Verify actual Python-TUF 7.0.1 generated fixtures and the pinned official suite;
+  document required-client scope separately from optional algorithm extensions.
+- Update for MoonBit 0.10.16, remove warning exclusions, and provide an optional
+  Windows extended-path argv adapter while retaining Windows CI coverage.
+
 ## 0.1.0 — 2026-10-03
 
 - Distinguished authoritative absence of the next root from a metadata fetch

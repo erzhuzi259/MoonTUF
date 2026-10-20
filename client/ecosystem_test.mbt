@@ -52,6 +52,10 @@ test "resolution validates entire request before loading and rejects incomplete 
   )
   assert_eq(calls, 0)
   assert_true(
+    client.resolve_plan(["apps/a.bin"], load, max_targets=1025)
+    is Err(ResourceLimit(_, _, _)),
+  )
+  assert_true(
     client.resolve_plan(["apps/a.bin"], load, max_metadata=0)
     is Err(DelegationLimit(0)),
   )

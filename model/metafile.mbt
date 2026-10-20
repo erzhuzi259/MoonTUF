@@ -94,6 +94,7 @@ fn read_hashes(
   if hashes.is_empty() {
     return Err(InvalidValue(path, "no supported hashes"))
   }
+  hashes.sort_by(fn(a, b) { a.0.lexical_compare(b.0) })
   Ok(hashes)
 }
 

@@ -20,24 +20,39 @@ jobs:
       - uses: hustcer/setup-moonbit@v1.22
       - name: Resolve dependencies
         run: moon update
+      - name: Normalize extended paths for Windows OCaml tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          & ./tools/windows/build-shim.ps1
+          $shim = Join-Path $env:GITHUB_WORKSPACE '_build/windows-path-shims'
+          "MOONC_OVERRIDE=$shim/moonc.exe" >> $env:GITHUB_ENV
+          "MOONFMT_OVERRIDE=$shim/moonfmt.exe" >> $env:GITHUB_ENV
+          "MOONINFO_OVERRIDE=$shim/mooninfo.exe" >> $env:GITHUB_ENV
+          $env:MOONC_OVERRIDE = "$shim/moonc.exe"
+          Push-Location (Join-Path $env:USERPROFILE '.moon/lib/core')
+          moon bundle --all --warn-list -a
+          Pop-Location
       - name: Verify formatting
         run: moon fmt --check
-      # Temporary compiler-migration baseline for existing derived-method,
-      # test-qualification and unused-import warnings; keep all others fatal.
       - name: Check every backend
-        run: moon check --target all --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
+        run: moon check --target all --deny-warn
       - name: Build portable code
-        run: moon build --target wasm-gc --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
+        run: moon build --target wasm-gc --deny-warn
       - name: Test portable code
-        run: moon test --target wasm-gc --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
+        run: moon test --target wasm-gc --deny-warn
       - name: Test JavaScript backend
         if: runner.os == 'Linux'
-        run: moon test --target js --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
+        run: moon test --target js --deny-warn
       - name: Run offline scenarios
         run: moon run examples/offline
       - name: Run JavaScript offline scenarios
         if: runner.os == 'Linux'
         run: moon run --target js examples/offline
+      - name: Run delegated plan and mirror fallback examples
+        run: |
+          moon run examples/delegated_plan
+          moon run examples/verified_mirrors
 
   native-linux:
     name: Native MoonBit (Ubuntu)
@@ -48,8 +63,8 @@ jobs:
       - run: moon update
       - name: Check, build, and test native packages
         run: |
-          moon check --target native --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
-          moon build --target native --release --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
-          moon test --target native --release --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
+          moon check --target native --deny-warn
+          moon build --target native --release --deny-warn
+          moon test --target native --release --deny-warn
       - name: Run native offline scenarios
         run: moon run --target native --release examples/offline

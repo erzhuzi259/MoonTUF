@@ -3,7 +3,7 @@
 The trust core processes metadata as bounded in-memory JSON. For metadata of
 size `M`, parsing and canonicalization require `O(M)` storage and roughly
 `O(M + Σ k log k)` work where each object has `k` members to sort for canonical
-signing bytes. Signature verification adds one Ed25519 operation per distinct
+signing bytes. Signature verification adds one supported crypto operation per distinct
 authorized signature inspected, bounded by role keys and metadata size.
 
 Attacker-controlled signature IDs and delegated-role names are now copied,
@@ -53,3 +53,42 @@ than Native Release; CI therefore uses Release mode for Native tests and the
 smoke example. A representative performance study should record compiler,
 backend, CPU, metadata/key sizes, role count and target bytes before proposing
 an algorithm or crypto-backend change.
+
+## 0.2.0 additions
+
+Shell path matching uses rolling dynamic programming over pattern tokens and
+Unicode target codepoints: O(P*T + P²) time, O(T + P) memory, including class
+token scans. Unterminated `[` is classified once per token, rather than
+rescanning the suffix for each target position. Patterns/paths are bounded to
+1024/4096 UTF-8 bytes. `*`, `?` and classes cannot consume `/`. This removes
+exponential wildcard backtracking while retaining ordered path semantics.
+
+Succinct delegation computes SHA-256 and directly extracts 1..32 leading bits:
+O(T) hashing time and O(1) bin bookkeeping. Even 32-bit bins do not allocate
+2^32 roles. The selected role still undergoes snapshot pin/signature checks.
+
+RSA verification cost depends on modulus bit length b and public exponent e:
+modular exponentiation uses roughly O(log(e)) modular multiplications, each
+using the dependency's BigInt arithmetic. Supported b is 2048..8192, e is odd
+and at most 2^31-1. PSS decoding/hash work is linear in the encoded-message
+length; the adapter does not claim constant-time secret operations because
+this is public-key verification, with no signing/private-key API. Multiple
+declared supported hashes cause two linear digest passes or two streaming
+contexts. No performance parity with optimized native Python crypto is claimed.
+
+`resolve_plan` bounds target count F (default 256, hard cap 1024) and unique
+metadata fetch count D (default 32, hard cap 64). Hash maps give expected O(F)
+duplicate validation and O(F*V) cache lookups for V visited roles per target,
+plus repeated per-target parsing/signature authorization. Hash collision worst
+cases may increase map work; explicit counts still bound it. Shared
+metadata is fetched at most D times and retained in O(D*M) bytes under the
+metadata limit M; output is O(F*V) role evidence. Caching verified authority
+without a parent/snapshot key would be unsafe. This design saves loader calls,
+not every cryptographic operation; two targets in one role assert one fetch.
+
+Mirror fallback resolves once and checks at most N mirrors (default 8, hard
+cap 32). Hash-map identifier validation is expected O(N); byte verification is
+O(N*B), with one candidate buffer plus the returned verified buffer rather
+than all mirror payloads. Hosts must bound reads before returning B-byte
+buffers. Rejected buffers are not retained. This is deterministic bounded
+fallback, with no concurrent requests, bandwidth or latency guarantee.

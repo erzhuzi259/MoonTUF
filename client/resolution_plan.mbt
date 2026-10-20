@@ -82,6 +82,7 @@ pub fn Client::resolve_plan(
     return Err(MissingStage("complete metadata chain"))
   }
   if max_targets < 0 ||
+    max_targets > 1024 ||
     paths.length() > max_targets ||
     max_metadata < 0 ||
     max_metadata > self.budget.max_delegated_roles {

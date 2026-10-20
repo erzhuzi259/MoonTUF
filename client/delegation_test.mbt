@@ -25,6 +25,55 @@ fn delegated_chain(
 }
 
 ///|
+test "succinct delegation resolves a nested target through exactly one hash bin" {
+  let key = @testkit.signer(236)
+  let child_key = @testkit.signer(237)
+  let keyid = child_key.keyid()
+  let key_json = child_key.key_json()
+  let signed = "{\"_type\":\"targets\",\"spec_version\":\"1.0.37\",\"version\":1,\"expires\":\"2030-01-01T00:00:00Z\",\"targets\":{},\"delegations\":{\"keys\":{\"\{keyid}\":\{key_json}},\"succinct_roles\":{\"keyids\":[\"\{keyid}\"],\"threshold\":1,\"bit_length\":32,\"name_prefix\":\"bins\"}}}"
+  let top = @testkit.signed_envelope(signed, [key])
+  let parsed = @model.parse_targets(top).unwrap()
+  let role = parsed
+    .delegations()
+    .unwrap()
+    .succinct_roles()
+    .unwrap()
+    .role_for_path("apps/nested/demo.bin")
+  let child = @testkit.targets(1, "apps/nested/demo.bin", b"abc", child_key)
+  let client = graph_client(key, top, [(role.name(), child)], max_roles=1)
+  let requested : Array[String] = []
+  let result = client
+    .verify_target("apps/nested/demo.bin", b"abc", fn(name) {
+      requested.push(name)
+      Some(child)
+    })
+    .unwrap()
+  assert_eq(result.bytes(), b"abc")
+  assert_eq(requested, ["1." + role.name() + ".json"])
+}
+
+///|
+test "delegation cannot revisit top-level targets or consume its child budget" {
+  let key = @testkit.signer(238)
+  let child_key = @testkit.signer(239)
+  let top = graph_targets(key, [
+    ("targets", key, false),
+    ("child", child_key, false),
+  ])
+  let child = @testkit.targets(1, "apps/demo.bin", b"abc", child_key)
+  let client = graph_client(key, top, [("child", child)], max_roles=1)
+  let requested : Array[String] = []
+  let result = client
+    .find_target_detail("apps/demo.bin", fn(name) {
+      requested.push(name)
+      Some(child)
+    })
+    .unwrap()
+  assert_eq(result.role_chain(), ["targets", "child"])
+  assert_eq(requested, ["1.child.json"])
+}
+
+///|
 test "delegated target requires authorized signature and snapshot pin" {
   let top_key = @testkit.signer(19)
   let delegated_key = @testkit.signer(20)

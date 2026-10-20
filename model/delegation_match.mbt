@@ -59,10 +59,13 @@ pub fn path_pattern_matches(pattern : String, path : String) -> Bool {
       i += 1
     } else {
       let mut next_i = i + 1
+      // Detect an unterminated class once, not for every path character.
+      // Otherwise repeated '[' could turn bounded DP into O(P² * T).
+      let valid_class = p[i] == '[' && class_match(p, i, '0') is Some(_)
       for j = 1; j <= t.length(); j = j + 1 {
         let matched = if p[i] == '?' {
           true
-        } else if p[i] == '[' {
+        } else if valid_class {
           match class_match(p, i, t[j - 1]) {
             Some((end, matched)) => {
               next_i = end

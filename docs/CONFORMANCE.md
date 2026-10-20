@@ -1,34 +1,49 @@
-# Verification status and conformance gap
+# Verification and conformance evidence
 
-Local tests cover parsing limits, duplicate-key and numeric rejection,
-Ed25519 thresholds, dual-signature root rotation, expiry and rollback,
-metadata hash/length links, delegation order/limits, target bytes, checkpoint
-restoration, update-cycle clock rollback, admission bundles, fail-closed
-streaming, URL encoding and response metering. The crypto boundary includes
-an independent [RFC 8032 §7.1](https://www.rfc-editor.org/rfc/rfc8032.html#section-7.1)
-known-answer signature, and root tests cover the different rollback rules
-for online-key rotation versus root-only rotation.
-Staged acceptance tests also reject unfinished root chains and expired
-timestamp/snapshot parents before accepting their child metadata.
+## Actual upstream test execution
+
+The official [tuf-conformance](https://github.com/theupdateframework/tuf-conformance) suite ran against **MoonTUF's actual MoonBit client** via the original pipe bridge and HTTP/disk adapter. The MoonBit core performs parsing, signature verification, trust transitions, delegation lookup and target-byte checks. The adapter does not delegate trust decisions to Python-TUF.
+
+Passing development-branch run: [39387549863](https://github.com/erzhuzi259/MoonTUF/actions/runs/39387549863), source `5e5a73a`; result **113 passed, 6 expected failures** (173.09 seconds on that GitHub runner). The upstream action revision is pinned to `1bc18916ee35f753b6eb8ee19dabb98449ca7326`. Later final-release evidence is recorded by its actual CI runs, not inferred from this earlier run.
+
+The six declared expected failures are optional algorithms outside the three recommended signing schemes:
+
+- RSA-PSS SHA-384 and SHA-512: 2 parameter cases.
+- ECDSA P-384: 1 case.
+- ML-DSA-44/65/87 (TAP21): 3 cases.
+
+No required-client case is marked expected failure. RSA-PSS SHA-256, ECDSA P-256 and Ed25519 tests actually pass. Expected-failure declarations are visible in `tools/conformance/client.xfails`, rather than being omitted from the test invocation. A suite pass is compatibility evidence for that suite/revision; it is not official certification or a security audit.
+
+## Reproduction
+
+On a host with current MoonBit, Python 3, Node 22 and the official suite's Linux dependencies:
 
 ```sh
+moon update
 moon fmt --check
-moon check --target all --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
-moon test --deny-warn --warn-list '-implicit_impl_as_method-test_unqualified_package-unused_package'
-moon build
-moon run examples/offline
+moon check --target all --deny-warn
+moon build --target all --deny-warn
+moon test --target all --deny-warn
+moon build tools/bridge --target js --release
+chmod +x tools/conformance/client
+# Run the pinned official action, or its pytest suite with:
+pytest /path/to/tuf-conformance/tuf_conformance --entrypoint "$PWD/tools/conformance/client"
 ```
 
-The repository CI repeats standard checks and example smoke tests. The scoped
-warning baseline matches the README and is not a warning-free claim. Release
-CI evidence is recorded in `RELEASE_0.1.0.md`. The upstream TUF suite
-requires an `init`/`refresh`/`download` HTTP-and-disk CLI adapter; MoonTUF's
-transport-agnostic core has no such adapter yet. A passing
-local suite is **not** evidence that the upstream [TUF conformance suite](https://github.com/theupdateframework/tuf-conformance)
-passes. That suite and independent security review remain future work. Do not
-advertise MoonTUF as a certified or audited TUF client.
+The upstream suite requires `faketime`; use the pinned GitHub action in `.github/workflows/conformance.yml` for the full environment. Windows toolchain 20261016 currently passes extended `\\?\` paths to OCaml tools that reject them. Use `./tools/windows/moon.ps1` in place of `moon` on this affected version; the wrapper invokes the installed official driver/compiler through an argv-only path normalizer, with no global environment change. Rebundle the core through the same path adapter after installation; see [Windows toolchain notes](WINDOWS_TOOLCHAIN.md). CI checks Windows as well as Linux.
 
-The upstream suite documents its CLI and execution requirements in the
-[official repository](https://github.com/theupdateframework/tuf-conformance).
-MoonTUF has not implemented the required HTTP-and-disk CLI adapter.
-No upstream fixture was copied and no upstream suite result is claimed.
+## Independent reference and regression coverage
+
+`tools/reference/generate.py` uses Python-TUF 7.0.1 and securesystemslib 1.5.1 to sign original synthetic repositories and verifies their role signatures/target hashes there before generating public MoonBit fixtures. No private keys or upstream test corpus are committed. Generated tests are clearly marked and excluded from handwritten LOC. Ordinary MoonBit tests use the committed fixtures with no Python dependency.
+
+The MoonBit suite additionally checks malformed keys/signatures, duplicate identifiers, unsupported algorithms, expiry/rollback/mix-and-match, sequential root recovery, path/hash/bin delegations, parent authorization, raw metadata pins, exact and streamed target hashes, checkpoint/local-state trust boundaries, namespace admissions, bundle atomicity, metadata limits, mirror failure/verification and shared delegated resolution. Public APIs are tested with explicit package qualifications, and the old compiler warning suppression baseline has been removed.
+
+New executable scenarios:
+
+```sh
+moon run examples/delegated_plan --target wasm-gc
+moon run examples/verified_mirrors --target wasm-gc
+moon run examples/offline --target wasm-gc
+```
+
+The fixtures use public deterministic test keys; they must not be used to authorize production updates. The offline scenarios include desktop/plugin, firmware, model, rule/configuration and atomic bundle workflows. Adapter HTTP, deployment filesystem semantics and production key custody require environment-specific review beyond these library tests.

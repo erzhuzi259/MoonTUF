@@ -12,6 +12,8 @@ The refresh path also distinguishes a missing next root (`Absent`) from a transp
 
 ## 十月第二轮：受信清单差异与缓存同步计划
 
-`Client::diff_top_level_inventory(previous, prefix?, max_results?, max_changes?)` 比较完整链中的顶层目标，仅按长度和 SHA-256 分类新增、删除与内容变化，不比较 custom；两个客户端各用其宿主提供的时间检查有效期。宿主须确认两者属于同一仓库；该报告不是更新授权或回滚验证的替代品。
+`Client::diff_top_level_inventory(previous, prefix?, max_results?, max_changes?)` 比较完整链中的顶层目标，0.2.0 按长度和全部受支持的哈希集合分类新增、删除与内容变化，不比较 custom；两个客户端各用其宿主提供的时间检查有效期。宿主须确认两者属于同一仓库；该报告不是更新授权或回滚验证的替代品。
 
 `plan_top_level_sync(cached, prefix?, max_targets?, max_cached?)` 将当前受信目标与宿主实际测得的本地指纹比较，返回 current、missing、changed、orphaned。缓存重复路径、非法路径/长度/指纹及超预算报错；orphaned 仅是指定命名空间内提示，不执行删除。委托目标须走原有委托解析；下载仍须校验实际字节后安装。运行 `moon run examples/offline --target js`。详见 [算法与复杂度](PERFORMANCE.md)。
+
+缓存同步的旧指纹输入仅含 SHA-256；遇到 SHA-512-only 目标时保守地标为 changed，不能凭缺失的 SHA-256 判为 current。跨委托批量解析和镜像故障切换见 [新增场景](SCENARIOS.md)。
