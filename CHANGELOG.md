@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 — Public profile description
+
+- Correct `profile_name()` to identify the TUF 1.0.37 client workflow and all
+  three signing schemes / two hash families delivered in 0.2.0. No trust,
+  parsing, transport or cryptographic behavior changes in this patch.
+
 ## 0.2.0 — Necessary TUF client scope and ecosystem integration
 
 - Add RSA-PSS-SHA256, ECDSA P-256/SHA256 and SHA-512 metadata/target hashes.

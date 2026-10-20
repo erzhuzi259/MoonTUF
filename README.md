@@ -8,7 +8,7 @@ expiry defenses, persistent accepted state, and exact artifact verification.
 Applications, plugins, firmware, models and configuration packages share the
 same interfaces; the host supplies transport, protected storage and installation.
 
-**0.2.0 scope:** TUF 1.0.37 necessary client functionality, Ed25519,
+**0.2.1 scope:** TUF 1.0.37 necessary client functionality, Ed25519,
 RSA-PSS-SHA256, ECDSA P-256/SHA256, SHA-256/SHA-512, ordinary and succinct
 delegations. The official upstream suite has passed **113 tests**, with six
 expected failures limited to optional algorithm extensions. This is test
@@ -24,7 +24,7 @@ See [exact results and revisions](docs/CONFORMANCE.md).
 ## Install
 
 ```sh
-moon add erzhuzi259/moontuf@0.2.0
+moon add erzhuzi259/moontuf@0.2.1
 ```
 
 Select subpackages in `moon.pkg`:

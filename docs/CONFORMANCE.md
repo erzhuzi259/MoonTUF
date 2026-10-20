@@ -4,7 +4,7 @@
 
 The official [tuf-conformance](https://github.com/theupdateframework/tuf-conformance) suite ran against **MoonTUF's actual MoonBit client** via the original pipe bridge and HTTP/disk adapter. The MoonBit core performs parsing, signature verification, trust transitions, delegation lookup and target-byte checks. The adapter does not delegate trust decisions to Python-TUF.
 
-Passing development-branch run: [39387549863](https://github.com/erzhuzi259/MoonTUF/actions/runs/39387549863), source `5e5a73a`; result **113 passed, 6 expected failures** (173.09 seconds on that GitHub runner). The upstream action revision is pinned to `1bc18916ee35f753b6eb8ee19dabb98449ca7326`. Later final-release evidence is recorded by its actual CI runs, not inferred from this earlier run.
+Passing 0.2.0 run: [39389950910](https://github.com/erzhuzi259/MoonTUF/actions/runs/39389950910), source `c67824a`; result **113 passed, 6 expected failures** (174.99 seconds on that GitHub runner). Its complete Linux/Windows CI also [passed](https://github.com/erzhuzi259/MoonTUF/actions/runs/39389950909). The upstream action revision is pinned to `1bc18916ee35f753b6eb8ee19dabb98449ca7326`. Patch 0.2.1 corrects only the root package's descriptive `profile_name()` string and release documentation; verification behavior is unchanged. Its actual CI runs remain separately visible in Actions.
 
 The six declared expected failures are optional algorithms outside the three recommended signing schemes:
 

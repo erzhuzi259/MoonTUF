@@ -50,3 +50,14 @@ trusted target descriptor.
 
 **Verified target**: A candidate whose exact bytes match a trusted descriptor;
 this says nothing about whether execution or installation is safe.
+
+**Resolution plan**: An explicit requested target set authorized independently
+under one trusted state, with detached role-chain evidence and shared bounded
+raw metadata reads. It does not authorize candidate bytes or enumerate roles.
+
+**Mirror attempt**: One host-approved location queried for bytes matching an
+already fixed trusted descriptor. Failure cannot change that descriptor.
+
+**Protected local state**: MTUF2 storage retaining partial accepted roles and
+rollback baselines, restored against the independently retained latest root.
+It is not an authenticated remote bootstrap format.
