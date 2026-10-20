@@ -1,6 +1,6 @@
 # MoonTUF 0.2.0 protocol, operations, usage and format
 
-The baseline is [TUF 1.0.37](https://theupdateframework.github.io/specification/v1.0.37/). The goal is the complete necessary **client verification workflow**, not just JSON signature validation. No independent security audit or certification is claimed. The optional authoring/server/mirrors-role surfaces are distinguished from client requirements in [the feature matrix](REFERENCE_COMPARISON.md).
+The baseline is [TUF 1.0.37](https://theupdateframework.github.io/specification/latest/). The goal is the complete necessary **client verification workflow**, not just JSON signature validation. No independent security audit or certification is claimed. The optional authoring/server/mirrors-role surfaces are distinguished from client requirements in [the feature matrix](REFERENCE_COMPARISON.md).
 
 ## Wire and algorithms
 

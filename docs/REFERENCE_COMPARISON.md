@@ -2,7 +2,7 @@
 
 ## Positioning and reference
 
-The review feedback asked MoonTUF to go beyond a JSON/Ed25519/SHA-256 subset. The 0.2.0 goal is a complete implementation of the necessary [TUF 1.0.37 client workflow](https://theupdateframework.github.io/specification/v1.0.37/), with explicit optional capabilities, matched against [Python-TUF 7.0.1](https://github.com/theupdateframework/python-tuf/tree/v7.0.1). Python-TUF is MIT OR Apache-2.0; the original MoonBit implementation is Apache-2.0. No reference implementation source was copied.
+The review feedback asked MoonTUF to go beyond a JSON/Ed25519/SHA-256 subset. The 0.2.0 goal is a complete implementation of the necessary [TUF 1.0.37 client workflow](https://theupdateframework.github.io/specification/latest/), with explicit optional capabilities, matched against [Python-TUF 7.0.1](https://github.com/theupdateframework/python-tuf/tree/v7.0.1). Python-TUF is MIT OR Apache-2.0; the original MoonBit implementation is Apache-2.0. No reference implementation source was copied.
 
 JSON is a documented wire format permitted by the specification, not a limitation to signature checks. The core value is the time-evolving trust state and verified artifact delivery across key rotations, metadata updates and delegated authorities.
 
