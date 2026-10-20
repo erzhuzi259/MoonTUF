@@ -16,6 +16,7 @@ jobs:
           node-version: '22'
       - name: Build actual MoonBit verification bridge
         run: |
+          moon update
           moon build --target js --release
           chmod +x tools/conformance/client
       - uses: theupdateframework/tuf-conformance@v2

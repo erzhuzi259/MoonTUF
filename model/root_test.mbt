@@ -21,8 +21,11 @@ test "root parser validates keys, thresholds and top-level roles" {
 }
 
 ///|
-test "root parser rejects unattainable threshold" {
-  assert_true(parse_root(root_fixture(2)) is Err(InvalidValue(_, _)))
+test "root parser retains unattainable threshold for role verification" {
+  assert_eq(
+    parse_root(root_fixture(2)).unwrap().role("snapshot").unwrap().threshold(),
+    2,
+  )
 }
 
 ///|

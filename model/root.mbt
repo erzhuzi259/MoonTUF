@@ -173,14 +173,6 @@ fn read_role(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  if threshold > keyids.length() {
-    return Err(
-      InvalidValue(
-        "signed.roles." + name + ".threshold",
-        "larger than distinct key count",
-      ),
-    )
-  }
   Ok({ keyids, threshold, })
 }
 

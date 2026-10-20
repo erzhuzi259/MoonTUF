@@ -93,7 +93,7 @@ pub fn verify_threshold(
         signature.sig(),
       ) {
       Ok(value) => value
-      Err(_) => return Err(MalformedSignature(id))
+      Err(_) => false
     }
     if verified {
       valid += 1

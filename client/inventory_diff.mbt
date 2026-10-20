@@ -86,7 +86,7 @@ pub fn Client::diff_top_level_inventory(
     current[path] = true
     match old.get(path) {
       Some(prior) if prior.length() == target.length() &&
-        prior.sha256() == target.sha256() => unchanged += 1
+        prior.hashes() == target.hashes() => unchanged += 1
       Some(prior) => {
         if count >= max_changes {
           return Err(ResourceLimit("inventory changes", count + 1, max_changes))

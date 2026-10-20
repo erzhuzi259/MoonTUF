@@ -68,6 +68,7 @@ pub struct Ticket {
   repository_name : String
   length : Int64
   sha256 : String
+  hashes : Array[(String, String)]
   root_version : Int32
   snapshot_version : Int32
   target_role_chain : Array[String]
@@ -86,6 +87,11 @@ pub fn Ticket::repository_name(self : Ticket) -> String {
 ///|
 pub fn Ticket::length(self : Ticket) -> Int64 {
   self.length
+}
+
+///|
+pub fn Ticket::hashes(self : Ticket) -> Array[(String, String)] {
+  self.hashes.copy()
 }
 
 ///|
@@ -177,6 +183,7 @@ pub fn evaluate(
       repository_name,
       length: descriptor.length(),
       sha256: descriptor.sha256(),
+      hashes: descriptor.hashes(),
       root_version: client.root_version(),
       snapshot_version,
       target_role_chain: chain,
@@ -203,7 +210,7 @@ pub fn verify_download(
   }
   let descriptor = resolved.descriptor()
   if descriptor.length() != ticket.length ||
-    descriptor.sha256() != ticket.sha256 {
+    descriptor.hashes() != ticket.hashes {
     return Err(StaleTicket)
   }
   if resolved.role_chain() != ticket.target_role_chain {
@@ -234,7 +241,7 @@ pub fn open_download_stream(
   }
   let descriptor = resolved.descriptor()
   if descriptor.length() != ticket.length ||
-    descriptor.sha256() != ticket.sha256 {
+    descriptor.hashes() != ticket.hashes {
     return Err(StaleTicket)
   }
   if resolved.role_chain() != ticket.target_role_chain {
