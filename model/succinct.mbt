@@ -40,8 +40,8 @@ pub fn SuccinctRoles::role_for_path(
     name: self.name_prefix + "-" + String::from_array(chars[:]),
     keyids: self.keyids,
     threshold: self.threshold,
-    paths: Some(["*"]),
-    path_hash_prefixes: None,
+    paths: None,
+    path_hash_prefixes: Some([@crypto.sha256_hex(@utf8.encode(path))]),
     terminating: true,
   }
 }

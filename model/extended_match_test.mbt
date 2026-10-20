@@ -15,7 +15,7 @@ test "shell paths support unicode classes ranges negation slash and literal brac
       ("?", "中", true),
       ("?", "éé", false),
     ] {
-    assert_eq(path_pattern_matches(pattern, value), expected)
+    assert_eq(@model.path_pattern_matches(pattern, value), expected)
   }
 }
 
@@ -23,7 +23,7 @@ test "shell paths support unicode classes ranges negation slash and literal brac
 test "succinct roles select only the correct 1 to 32 bit hash bin" {
   let key = @testkit.signer(236)
   let base = @testkit.top_with_delegation(1, "apps", "*", key, key)
-  let envelope = parse_envelope(base).unwrap()
+  let envelope = @model.parse_envelope(base).unwrap()
   let role = "{\"keyids\":[\"\{key.keyid()}\"],\"threshold\":1,\"bit_length\":32,\"name_prefix\":\"bins\"}"
   let role_value = @wire.parse(@utf8.encode(role)).unwrap()
   let raw = envelope.signed()
@@ -41,7 +41,7 @@ test "succinct roles select only the correct 1 to 32 bit hash bin" {
     }
   }
   let body = try! @utf8.decode(@wire.canonical(@wire.Dict(entries)))
-  let targets = parse_targets(@testkit.signed_envelope(body, [key])).unwrap()
+  let targets = @model.parse_targets(@testkit.signed_envelope(body, [key])).unwrap()
   let succinct = targets.delegations().unwrap().succinct_roles().unwrap()
   let selected = succinct.role_for_path("plugins/a.bin")
   let digest = @crypto.sha256_hex(@utf8.encode("plugins/a.bin"))

@@ -13,7 +13,7 @@ fn timestamp_fixture(
 ///|
 test "timestamp signature, expiry and pinned snapshot are enforced" {
   let key = @testkit.signer(5)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, key, [key], consistent_snapshot=true),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -36,7 +36,7 @@ test "timestamp signature, expiry and pinned snapshot are enforced" {
 ///|
 test "timestamp rejects same version and snapshot reference rollback" {
   let key = @testkit.signer(6)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -59,7 +59,7 @@ test "timestamp rejects same version and snapshot reference rollback" {
 test "timestamp refuses an unsigned candidate" {
   let key = @testkit.signer(7)
   let other = @testkit.signer(8)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -71,7 +71,7 @@ test "timestamp refuses an unsigned candidate" {
 ///|
 test "same-version timestamp cannot hide expiry" {
   let key = @testkit.signer(9)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -91,7 +91,7 @@ test "same-version timestamp cannot hide expiry" {
 ///|
 test "begin update preserves baselines and rejects clock rollback" {
   let key = @testkit.signer(10)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()

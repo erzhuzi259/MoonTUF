@@ -36,10 +36,10 @@ test "streaming verifier enforces total target budget" {
   let targets = @testkit.targets(1, "model.bin", artifact, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, key, [key]),
       "2026-09-25T00:00:00Z",
-      budget=budgets(max_target_bytes=2),
+      budget=@client.budgets(max_target_bytes=2),
     )
     .unwrap()
     .accept_timestamp(timestamp)

@@ -2,7 +2,7 @@
 test "trusted root anchor opens only after valid self-signature" {
   let key = @testkit.signer(1)
   let raw = @testkit.root(1, key, [key])
-  let client = open_trusted_root(raw, "2026-09-25T00:00:00Z").unwrap()
+  let client = @client.open_trusted_root(raw, "2026-09-25T00:00:00Z").unwrap()
   assert_eq(client.root_version(), 1)
   assert_eq(client.next_root_name(), Some("2.root.json"))
   assert_true(client.finish_root_chain() is Ok(_))
@@ -14,7 +14,7 @@ test "root rotation requires old and new authorized signatures" {
   let old_key = @testkit.signer(1)
   let new_key = @testkit.signer(2)
   let anchor = @testkit.root(1, old_key, [old_key])
-  let client = open_trusted_root(anchor, "2026-09-25T00:00:00Z").unwrap()
+  let client = @client.open_trusted_root(anchor, "2026-09-25T00:00:00Z").unwrap()
   let valid = @testkit.root(2, new_key, [old_key, new_key])
   let advanced = client.advance_root(valid).unwrap()
   assert_eq(advanced.root_version(), 2)
@@ -29,7 +29,7 @@ test "root rotation requires old and new authorized signatures" {
 test "root rotation rejects skipped versions and expiry at update start" {
   let key = @testkit.signer(3)
   let anchor = @testkit.root(1, key, [key])
-  let client = open_trusted_root(anchor, "2026-09-25T00:00:00Z").unwrap()
+  let client = @client.open_trusted_root(anchor, "2026-09-25T00:00:00Z").unwrap()
   assert_true(
     client.advance_root(@testkit.root(3, key, [key]))
     is Err(VersionMismatch(_, _, _)),
@@ -44,17 +44,17 @@ test "root size and rotation budgets fail closed" {
   let key = @testkit.signer(4)
   let anchor = @testkit.root(1, key, [key])
   assert_true(
-    open_trusted_root(
+    @client.open_trusted_root(
       anchor,
       "2026-09-25T00:00:00Z",
-      budget=budgets(max_root_bytes=10),
+      budget=@client.budgets(max_root_bytes=10),
     )
     is Err(ResourceLimit(_, _, _)),
   )
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     anchor,
     "2026-09-25T00:00:00Z",
-    budget=budgets(max_root_rotations=1),
+    budget=@client.budgets(max_root_rotations=1),
   ).unwrap()
   let first = client.advance_root(@testkit.root(2, key, [key])).unwrap()
   assert_true(
@@ -70,7 +70,7 @@ test "online key rotation clears fast-forwarded timestamp baseline" {
   let old_targets = @testkit.empty_targets(5, old_key)
   let old_snapshot = @testkit.snapshot(5, 5, old_targets, old_key)
   let old_timestamp = @testkit.timestamp(5, 5, old_snapshot, old_key)
-  let initial = open_trusted_root(
+  let initial = @client.open_trusted_root(
       @testkit.root(1, old_key, [old_key]),
       "2026-09-25T00:00:00Z",
     )
@@ -102,7 +102,7 @@ test "online metadata cannot advance before root chain is finished" {
   let targets = @testkit.empty_targets(1, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let staged = open_trusted_root(
+  let staged = @client.open_trusted_root(
       @testkit.root(1, key, [key]),
       "2026-09-25T00:00:00Z",
     )
@@ -127,7 +127,7 @@ test "root-only rotation retains online rollback baselines" {
   let old_targets = @testkit.empty_targets(5, old_key)
   let old_snapshot = @testkit.snapshot(5, 5, old_targets, old_key)
   let old_timestamp = @testkit.timestamp(5, 5, old_snapshot, old_key)
-  let initial = open_trusted_root(
+  let initial = @client.open_trusted_root(
       @testkit.root(1, old_key, [old_key]),
       "2026-09-25T00:00:00Z",
     )
@@ -182,7 +182,7 @@ test "snapshot-only key rotation also clears online baselines" {
   let candidate = @testkit.signed_envelope(signed, [old_key])
   let old_targets = @testkit.empty_targets(5, old_key)
   let old_snapshot = @testkit.snapshot(5, 5, old_targets, old_key)
-  let initial = open_trusted_root(
+  let initial = @client.open_trusted_root(
       @testkit.root(1, old_key, [old_key]),
       "2026-09-25T00:00:00Z",
     )

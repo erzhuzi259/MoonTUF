@@ -1,5 +1,5 @@
 ///|
-fn shared_delegated_fixture() -> (Client, Bytes) {
+fn shared_delegated_fixture() -> (@client.Client, Bytes) {
   let top_key = @testkit.signer(231)
   let child_key = @testkit.signer(232)
   let digest = @crypto.sha256_hex(b"abc")
@@ -142,20 +142,24 @@ test "local resumable state retains partial timestamp and rejects anchor and clo
   let targets = @testkit.targets(1, "app.bin", b"abc", key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let partial = open_trusted_root(root, "2026-10-20T00:00:00Z")
+  let partial = @client.open_trusted_root(root, "2026-10-20T00:00:00Z")
     .unwrap()
     .accept_timestamp(timestamp)
     .unwrap()
   let saved = partial.save_state()
-  let restored = restore_state(saved, root, "2026-10-21T00:00:00Z").unwrap()
+  let restored = @client.restore_state(saved, root, "2026-10-21T00:00:00Z").unwrap()
   assert_false(restored.ready())
   assert_eq(restored.timestamp_version(), Some(1))
   assert_true(
-    restore_state(saved, root, "2026-10-19T00:00:00Z")
+    @client.restore_state(saved, root, "2026-10-19T00:00:00Z")
     is Err(ClockRollback(_, _)),
   )
   assert_true(
-    restore_state(saved, @testkit.root(2, key, [key]), "2026-10-21T00:00:00Z")
+    @client.restore_state(
+      saved,
+      @testkit.root(2, key, [key]),
+      "2026-10-21T00:00:00Z",
+    )
     is Err(CheckpointRootMismatch),
   )
   let outcome = restored.refresh(fn(name) {

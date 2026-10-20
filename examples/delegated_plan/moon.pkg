@@ -1,0 +1,7 @@
+import {
+  "erzhuzi259/moontuf/client",
+  "erzhuzi259/moontuf/testkit",
+  "erzhuzi259/moontuf/crypto",
+}
+
+pkgtype(kind: "executable")

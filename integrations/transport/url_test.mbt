@@ -1,6 +1,6 @@
 ///|
 test "repository URL builder encodes reserved target bytes" {
-  let urls = repository_urls(
+  let urls = @transport.repository_urls(
     "https://updates.example.org/metadata/", "https://updates.example.org/targets/",
   ).unwrap()
   assert_eq(
@@ -16,18 +16,26 @@ test "repository URL builder encodes reserved target bytes" {
 ///|
 test "repository URL builder rejects ambiguous bases and paths" {
   assert_true(
-    repository_urls("http://example.org/meta", "https://example.org/t")
+    @transport.repository_urls(
+      "http://example.org/meta", "https://example.org/t",
+    )
     is Err(InvalidBase(_)),
   )
   assert_true(
-    repository_urls("https://user@example.org/m", "https://example.org/t")
+    @transport.repository_urls(
+      "https://user@example.org/m", "https://example.org/t",
+    )
     is Err(InvalidBase(_)),
   )
   assert_true(
-    repository_urls("https://example.org/../m", "https://example.org/t")
+    @transport.repository_urls(
+      "https://example.org/../m", "https://example.org/t",
+    )
     is Err(InvalidBase(_)),
   )
-  let urls = repository_urls("https://example.org/m", "https://example.org/t").unwrap()
+  let urls = @transport.repository_urls(
+    "https://example.org/m", "https://example.org/t",
+  ).unwrap()
   assert_true(urls.metadata_url("../root.json") is Err(InvalidMetadataName(_)))
   assert_true(urls.metadata_url("timestamp.txt") is Err(InvalidMetadataName(_)))
   assert_true(urls.target_url("a/../b") is Err(InvalidTargetName(_)))
@@ -35,7 +43,9 @@ test "repository URL builder rejects ambiguous bases and paths" {
 
 ///|
 test "request hints meter metadata without trusting transport lengths" {
-  let urls = repository_urls("https://example.org/m", "https://example.org/t").unwrap()
+  let urls = @transport.repository_urls(
+    "https://example.org/m", "https://example.org/t",
+  ).unwrap()
   let hint = urls.timestamp_request(4L).unwrap()
   assert_eq(hint.name(), "timestamp.json")
   assert_eq(hint.url(), "https://example.org/m/timestamp.json")
@@ -49,7 +59,9 @@ test "request hints meter metadata without trusting transport lengths" {
 
 ///|
 test "request meter rejects negative sizes and double finish" {
-  let urls = repository_urls("https://example.org/m", "https://example.org/t").unwrap()
+  let urls = @transport.repository_urls(
+    "https://example.org/m", "https://example.org/t",
+  ).unwrap()
   let meter = urls.timestamp_request(10L).unwrap().meter()
   assert_true(meter.consume(-1L) is Err(InvalidRequestBudget))
   assert_true(meter.consume(1L) is Err(RequestMeterClosed))
@@ -61,7 +73,9 @@ test "request meter rejects negative sizes and double finish" {
 
 ///|
 test "request preflight rejects redirects and compressed responses" {
-  let urls = repository_urls("https://example.org/m", "https://example.org/t").unwrap()
+  let urls = @transport.repository_urls(
+    "https://example.org/m", "https://example.org/t",
+  ).unwrap()
   let hint = urls.timestamp_request(10L).unwrap()
   assert_true(
     hint.check_response(302, None, "") is Err(UnexpectedHttpStatus(302)),

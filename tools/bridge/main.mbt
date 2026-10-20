@@ -122,13 +122,28 @@ fn main {
     }
     for target in targets {
       let path = target.as_text().unwrap()
-      let descriptor = match client.find_target(path, load) {
+      let resolved = match
+        client.find_target_detail(path, load, on_verified=fn(role, raw) {
+          let event = @wire.Dict([
+            ("store", @wire.Text("metadata")),
+            ("name", @wire.Text(role)),
+            ("raw", @wire.Text(@crypto.encode_hex(raw))),
+          ])
+          ignore(
+            exchange(
+              @utf8.decode(@wire.canonical(event)) catch {
+                _ => abort("utf8")
+              },
+            ),
+          )
+        }) {
         Ok(value) => value
         Err(error) => {
           fail(error.to_repr().to_string(), Some(client))
           return
         }
       }
+      let descriptor = resolved.descriptor()
       let cached = request("cached", path, descriptor.length())
       let bytes = match @crypto.decode_hex(text(cached, "raw")) {
         Ok(value) => value

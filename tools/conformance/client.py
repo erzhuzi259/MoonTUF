@@ -61,6 +61,8 @@ def main():
     root = bytes.fromhex(json.loads(state)["root"]) if state else (store / "root.json").read_bytes()
     request = {"root": root.hex(), "state": state.hex(),
                "time": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
+    if state:
+        request["time"] = max(request["time"], json.loads(state)["time"])
     if args.command == "download":
         request["targets"] = args.target_name
     process = subprocess.Popen(["node", str(BRIDGE)], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -81,8 +83,12 @@ def main():
                 response = fetch(base, name, maximum)
             process.stdin.write(json.dumps(response) + "\n")
             process.stdin.flush()
-        elif event.get("store") == "target":
-            atomic_write(args.target_dir / event["name"], bytes.fromhex(event["raw"]))
+        elif "store" in event:
+            if event["store"] == "metadata":
+                file = store / (urllib.parse.quote(event["name"], safe="") + ".json")
+            else:
+                file = args.target_dir / event["name"]
+            atomic_write(file, bytes.fromhex(event["raw"]))
             process.stdin.write("{}\n")
             process.stdin.flush()
         else:

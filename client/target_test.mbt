@@ -28,7 +28,7 @@ test "consistent target filename prefixes basename with trusted digest" {
   let targets = @testkit.targets(1, "apps/demo.bin", artifact, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, key, [key], consistent_snapshot=true),
       "2026-09-25T00:00:00Z",
     )
@@ -54,10 +54,10 @@ test "target bytes over caller budget are rejected before hashing" {
   let targets = @testkit.targets(1, "a.bin", artifact, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, key, [key]),
       "2026-09-25T00:00:00Z",
-      budget=budgets(max_target_bytes=2),
+      budget=@client.budgets(max_target_bytes=2),
     )
     .unwrap()
     .accept_timestamp(timestamp)

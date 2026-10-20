@@ -1,7 +1,9 @@
 ///|
 /// Existing offline fixtures use Option because absence is authoritative in
 /// their in-memory repository. Real fetchers must report failures separately.
-fn fixture_response(load : (String) -> Bytes?) -> (String) -> MetadataResponse {
+fn fixture_response(
+  load : (String) -> Bytes?,
+) -> (String) -> @client.MetadataResponse {
   fn(name) {
     match load(name) {
       Some(bytes) => MetadataPresent(bytes)
@@ -13,7 +15,7 @@ fn fixture_response(load : (String) -> Bytes?) -> (String) -> MetadataResponse {
 ///|
 test "root fetch failure cannot be mistaken for the end of root rotation" {
   let key = @testkit.signer(60)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -34,7 +36,7 @@ test "root fetch failure retains only already authenticated rotations" {
   let old_key = @testkit.signer(61)
   let new_key = @testkit.signer(62)
   let root2 = @testkit.root(2, new_key, [old_key, new_key])
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, old_key, [old_key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -59,7 +61,7 @@ test "one-shot refresh composes four-role verification" {
   let targets = @testkit.targets(1, "apps/demo.bin", artifact, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -85,7 +87,7 @@ test "refresh returns partial trusted state after later metadata absence" {
   let key = @testkit.signer(27)
   let snapshot = @testkit.snapshot(1, 1, @testkit.empty_targets(1, key), key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -126,7 +128,7 @@ test "snapshot fetch failure preserves accepted timestamp for retry" {
   let targets = @testkit.empty_targets(1, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -151,7 +153,7 @@ test "refresh resumes missing targets without fetching a retained snapshot" {
   let targets = @testkit.empty_targets(1, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let initial = open_trusted_root(
+  let initial = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -191,7 +193,7 @@ test "resuming an equal timestamp preserves the original snapshot pin" {
   let targets = @testkit.empty_targets(1, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let partial = open_trusted_root(
+  let partial = @client.open_trusted_root(
       @testkit.root(1, key, [key]),
       "2026-09-25T00:00:00Z",
     )
@@ -237,7 +239,7 @@ test "incomplete retries cannot revive expired retained metadata" {
     expires="2026-09-26T00:00:00Z",
   )
   let fresh_timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let initial = open_trusted_root(
+  let initial = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -275,7 +277,7 @@ test "refresh can rotate root then validate metadata with new key" {
   let targets = @testkit.empty_targets(1, new_key)
   let snapshot = @testkit.snapshot(1, 1, targets, new_key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, new_key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, old_key, [old_key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -301,7 +303,7 @@ test "refresh reports versioned repository names for consistent snapshots" {
   let targets = @testkit.empty_targets(3, key)
   let snapshot = @testkit.snapshot(7, 3, targets, key)
   let timestamp = @testkit.timestamp(9, 7, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, key, [key], consistent_snapshot=true),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -341,7 +343,7 @@ test "unchanged timestamp cannot conceal stale retained snapshot" {
       _ => None
     }
   }
-  let initial = open_trusted_root(
+  let initial = @client.open_trusted_root(
       @testkit.root(1, key, [key]),
       "2026-09-25T00:00:00Z",
     )

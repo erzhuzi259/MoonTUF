@@ -3,11 +3,14 @@ fn complete_chain(
   key : @testkit.Signer,
   path : String,
   artifact : Bytes,
-) -> Client {
+) -> @client.Client {
   let targets = @testkit.targets(1, path, artifact, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  open_trusted_root(@testkit.root(1, key, [key]), "2026-09-25T00:00:00Z")
+  @client.open_trusted_root(
+    @testkit.root(1, key, [key]),
+    "2026-09-25T00:00:00Z",
+  )
   .unwrap()
   .accept_timestamp(timestamp)
   .unwrap()
@@ -35,7 +38,7 @@ test "targets raw bytes must match the trusted snapshot" {
   let targets = @testkit.targets(1, "app.bin", artifact, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, key, [key]),
       "2026-09-25T00:00:00Z",
     )
@@ -54,7 +57,7 @@ test "targets raw bytes must match the trusted snapshot" {
 ///|
 test "targets cannot be used before all verification stages" {
   let key = @testkit.signer(15)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -77,7 +80,7 @@ test "targets cannot be accepted from an expired snapshot pin" {
     expires="2027-01-01T00:00:00Z",
   )
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, key, [key], expires="2040-01-01T00:00:00Z"),
       "2026-09-25T00:00:00Z",
     )

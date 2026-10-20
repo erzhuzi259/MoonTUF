@@ -5,7 +5,7 @@ test "snapshot accepts a pinned, signed version" {
   let targets = @testkit.targets(1, "app.bin", artifact, key)
   let snapshot = @testkit.snapshot(2, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 2, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, key, [key], consistent_snapshot=true),
       "2026-09-25T00:00:00Z",
     )
@@ -30,7 +30,7 @@ test "snapshot cannot be accepted from an expired timestamp pin" {
     key,
     expires="2027-01-01T00:00:00Z",
   )
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, key, [key], expires="2040-01-01T00:00:00Z"),
       "2026-09-25T00:00:00Z",
     )
@@ -48,7 +48,7 @@ test "snapshot rejects raw hash and length mismatch before parsing" {
   let targets = @testkit.empty_targets(1, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, key, [key]),
       "2026-09-25T00:00:00Z",
     )
@@ -70,7 +70,7 @@ test "snapshot version must match trusted timestamp" {
   let targets = @testkit.empty_targets(1, key)
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 2, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, key, [key]),
       "2026-09-25T00:00:00Z",
     )
@@ -89,7 +89,7 @@ test "new snapshot cannot roll back targets metadata version" {
   let targets2 = @testkit.targets(2, "app.bin", artifact, key)
   let snapshot1 = @testkit.snapshot(1, 2, targets2, key)
   let timestamp1 = @testkit.timestamp(1, 1, snapshot1, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, key, [key]),
       "2026-09-25T00:00:00Z",
     )

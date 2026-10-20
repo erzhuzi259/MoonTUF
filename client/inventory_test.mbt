@@ -26,7 +26,7 @@ test "top-level inventory respects namespace and result budget" {
 ///|
 test "inventory rejects incomplete and stale chains" {
   let key = @testkit.signer(214)
-  let root = open_trusted_root(
+  let root = @client.open_trusted_root(
     @testkit.root(1, key, [key]),
     "2026-09-25T00:00:00Z",
   ).unwrap()
@@ -45,7 +45,7 @@ test "inventory refuses partial results when namespace exceeds limit" {
   let targets = @testkit.signed_envelope(signed_json, [key])
   let snapshot = @testkit.snapshot(1, 1, targets, key)
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, key, [key]),
       "2026-09-25T00:00:00Z",
     )

@@ -25,12 +25,12 @@ fn bundle_client(key : @testkit.Signer) -> @client.Client {
 test "bundle plan validates all files under one trusted snapshot" {
   let key = @testkit.signer(44)
   let client = bundle_client(key)
-  let rules = bundle_policy(
-    policy(prefix="plugins").unwrap(),
+  let rules = @admission.bundle_policy(
+    @admission.policy(prefix="plugins").unwrap(),
     max_total_bytes=16L,
   ).unwrap()
   let load = fn(_ : String) -> Bytes? { None }
-  let plan = plan_bundle(
+  let plan = @admission.plan_bundle(
     client,
     ["plugins/core.bin", "plugins/data.bin"],
     rules,
@@ -38,7 +38,7 @@ test "bundle plan validates all files under one trusted snapshot" {
   ).unwrap()
   assert_eq(plan.tickets().length(), 2)
   assert_eq(plan.total_bytes(), 7L)
-  let verified = verify_bundle(
+  let verified = @admission.verify_bundle(
     client,
     plan,
     [@utf8.encode("abc"), @utf8.encode("defg")],
@@ -51,17 +51,27 @@ test "bundle plan validates all files under one trusted snapshot" {
 test "bundle plan rejects duplicates and total budget overrun" {
   let key = @testkit.signer(45)
   let client = bundle_client(key)
-  let rules = bundle_policy(
-    policy(prefix="plugins").unwrap(),
+  let rules = @admission.bundle_policy(
+    @admission.policy(prefix="plugins").unwrap(),
     max_total_bytes=6L,
   ).unwrap()
   let load = fn(_ : String) -> Bytes? { None }
   assert_true(
-    plan_bundle(client, ["plugins/core.bin", "plugins/core.bin"], rules, load)
+    @admission.plan_bundle(
+      client,
+      ["plugins/core.bin", "plugins/core.bin"],
+      rules,
+      load,
+    )
     is Err(DuplicatePath(_)),
   )
   assert_true(
-    plan_bundle(client, ["plugins/core.bin", "plugins/data.bin"], rules, load)
+    @admission.plan_bundle(
+      client,
+      ["plugins/core.bin", "plugins/data.bin"],
+      rules,
+      load,
+    )
     is Err(TotalTooLarge(7L, 6L)),
   )
 }
@@ -70,9 +80,11 @@ test "bundle plan rejects duplicates and total budget overrun" {
 test "bundle plan records already installed targets without downloading" {
   let key = @testkit.signer(46)
   let client = bundle_client(key)
-  let rules = bundle_policy(policy(prefix="plugins").unwrap()).unwrap()
+  let rules = @admission.bundle_policy(
+    @admission.policy(prefix="plugins").unwrap(),
+  ).unwrap()
   let load = fn(_ : String) -> Bytes? { None }
-  let plan = plan_bundle(
+  let plan = @admission.plan_bundle(
     client,
     ["plugins/core.bin", "plugins/data.bin"],
     rules,
@@ -87,15 +99,17 @@ test "bundle plan records already installed targets without downloading" {
 ///|
 test "streaming bundle releases receipts only after all files verify" {
   let client = bundle_client(@testkit.signer(47))
-  let rules = bundle_policy(policy(prefix="plugins").unwrap()).unwrap()
+  let rules = @admission.bundle_policy(
+    @admission.policy(prefix="plugins").unwrap(),
+  ).unwrap()
   let load = fn(_ : String) -> Bytes? { None }
-  let plan = plan_bundle(
+  let plan = @admission.plan_bundle(
     client,
     ["plugins/core.bin", "plugins/data.bin"],
     rules,
     load,
   ).unwrap()
-  let session = open_bundle_session(client, plan, load).unwrap()
+  let session = @admission.open_bundle_session(client, plan, load).unwrap()
   assert_true(session.finish_bundle() is Err(BundleIncomplete(0, 2)))
   assert_true(
     session.write_file(1, @utf8.encode("defg")) is Err(StreamOrder(0, 1)),
@@ -115,10 +129,12 @@ test "streaming bundle releases receipts only after all files verify" {
 ///|
 test "bad candidate permanently closes streaming bundle" {
   let client = bundle_client(@testkit.signer(48))
-  let rules = bundle_policy(policy(prefix="plugins").unwrap()).unwrap()
+  let rules = @admission.bundle_policy(
+    @admission.policy(prefix="plugins").unwrap(),
+  ).unwrap()
   let load = fn(_ : String) -> Bytes? { None }
-  let plan = plan_bundle(client, ["plugins/core.bin"], rules, load).unwrap()
-  let session = open_bundle_session(client, plan, load).unwrap()
+  let plan = @admission.plan_bundle(client, ["plugins/core.bin"], rules, load).unwrap()
+  let session = @admission.open_bundle_session(client, plan, load).unwrap()
   session.write_file(0, @utf8.encode("bad")).unwrap()
   assert_true(session.finish_file(0) is Err(Admission(Client(_))))
   assert_true(session.closed())

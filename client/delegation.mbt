@@ -46,6 +46,7 @@ fn Client::load_delegated(
   parent : @model.Delegations,
   role : @model.DelegatedRole,
   load : (String) -> Bytes?,
+  on_verified : (String, Bytes) -> Unit,
 ) -> Result[@model.Targets, ClientError] {
   let role_name = role.name()
   let meta_name = role_name + ".json"
@@ -92,6 +93,7 @@ fn Client::load_delegated(
   if @model.expired(parsed.common().expires(), self.update_start) {
     return Err(Expired(meta_name))
   }
+  on_verified(role_name, raw)
   Ok(parsed)
 }
 
@@ -105,6 +107,7 @@ fn Client::search_delegations(
   load : (String) -> Bytes?,
   visited : Array[String],
   chain : Array[String],
+  on_verified : (String, Bytes) -> Unit,
 ) -> Result[SearchOutcome, ClientError] {
   let delegations = match current.delegations() {
     Some(value) => value
@@ -124,7 +127,8 @@ fn Client::search_delegations(
     visited.push(name)
     let child_chain = chain.copy()
     child_chain.push(name)
-    let child = match self.load_delegated(delegations, role, load) {
+    let child = match
+      self.load_delegated(delegations, role, load, on_verified) {
       Ok(value) => value
       Err(error) => return Err(error)
     }
@@ -132,7 +136,9 @@ fn Client::search_delegations(
       return Ok(Found({ descriptor: found, role_chain: child_chain, }))
     }
     let deeper = match
-      self.search_delegations(child, path, load, visited, child_chain) {
+      self.search_delegations(
+        child, path, load, visited, child_chain, on_verified,
+      ) {
       Ok(value) => value
       Err(error) => return Err(error)
     }
@@ -169,6 +175,7 @@ pub fn Client::find_target_detail(
   self : Client,
   path : String,
   load : (String) -> Bytes?,
+  on_verified~ : (String, Bytes) -> Unit = fn(_, _) {  },
 ) -> Result[ResolvedTarget, ClientError] {
   if !self.ready() {
     return Err(MissingStage("complete metadata chain"))
@@ -184,7 +191,8 @@ pub fn Client::find_target_detail(
     return Ok({ descriptor: found, role_chain: ["targets"], })
   }
   let visited : Array[String] = []
-  match self.search_delegations(top, path, load, visited, ["targets"]) {
+  match
+    self.search_delegations(top, path, load, visited, ["targets"], on_verified) {
     Ok(Found(found)) => Ok(found)
     Ok(Miss | Terminated) => Err(TargetNotFound(path))
     Err(error) => Err(error)

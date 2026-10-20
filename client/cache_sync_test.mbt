@@ -29,7 +29,7 @@ test "inventory differences distinguish content replacement from path replacemen
 test "sync plan reports missing changed current and namespace scoped orphaned entries" {
   let client = complete_chain(@testkit.signer(219), "apps/a.bin", b"abc")
   assert_eq(client.plan_top_level_sync([]).unwrap().missing().length(), 1)
-  let fingerprint : CachedTarget = {
+  let fingerprint : @client.CachedTarget = {
     path: "apps/a.bin",
     length: 3L,
     sha256: @crypto.sha256_hex(b"abc"),
@@ -61,7 +61,7 @@ test "sync plan reports missing changed current and namespace scoped orphaned en
 ///|
 test "cache planner rejects malformed ambiguous over budget and stale inputs" {
   let client = complete_chain(@testkit.signer(220), "apps/a.bin", b"abc")
-  let item : CachedTarget = {
+  let item : @client.CachedTarget = {
     path: "apps/a.bin",
     length: 3L,
     sha256: @crypto.sha256_hex(b"abc"),

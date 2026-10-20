@@ -25,7 +25,7 @@ fn signed_root_fixture() -> Bytes {
 ///|
 test "real Ed25519 root signature passes its declared threshold" {
   let root = @model.parse_root(signed_root_fixture()).unwrap()
-  assert_true(verify_root_self(root) is Ok(1))
+  assert_true(@trust.verify_root_self(root) is Ok(1))
 }
 
 ///|
@@ -35,7 +35,7 @@ test "changing signed content after signing invalidates the root" {
   }
   let forged = raw.replace(old="\"version\":1", new="\"version\":2")
   let root = @model.parse_root(@utf8.encode(forged)).unwrap()
-  assert_true(verify_root_self(root) is Err(ThresholdNotMet(_, _, _)))
+  assert_true(@trust.verify_root_self(root) is Err(ThresholdNotMet(_, _, _)))
 }
 
 ///|
@@ -46,7 +46,7 @@ test "missing root signature does not bootstrap trust" {
   let prefix = raw.split(",\"signatures\"").next().unwrap().to_owned()
   let unsigned = prefix + ",\"signatures\":[]}"
   let root = @model.parse_root(@utf8.encode(unsigned)).unwrap()
-  assert_true(verify_root_self(root) is Err(ThresholdNotMet(_, _, _)))
+  assert_true(@trust.verify_root_self(root) is Err(ThresholdNotMet(_, _, _)))
 }
 
 ///|
@@ -63,5 +63,5 @@ test "many unknown signatures do not count before an authorized signer" {
     new="\"signatures\":[" + unknown,
   )
   let root = @model.parse_root(@utf8.encode(augmented)).unwrap()
-  assert_true(verify_root_self(root) is Ok(1))
+  assert_true(@trust.verify_root_self(root) is Ok(1))
 }

@@ -3,7 +3,7 @@ test "metadata envelope preserves raw and canonical signed bytes separately" {
   let raw = @utf8.encode(
     "{\"signatures\":[{\"keyid\":\"first\",\"sig\":\"aa\"}],\"signed\":{\"version\":1,\"_type\":\"root\"}}",
   )
-  let envelope = parse_envelope(raw).unwrap()
+  let envelope = @model.parse_envelope(raw).unwrap()
   assert_eq(envelope.raw().length(), raw.length())
   let signed = @utf8.decode(envelope.canonical_signed()) catch {
     _ => abort("canonical bytes are not UTF-8")
@@ -17,7 +17,7 @@ test "envelope signed AST mutations cannot change nested authenticated data" {
   let raw = @utf8.encode(
     "{\"signed\":{\"version\":1,\"nested\":{\"channels\":[{\"name\":\"stable\"}]}},\"signatures\":[]}",
   )
-  let envelope = parse_envelope(raw).unwrap()
+  let envelope = @model.parse_envelope(raw).unwrap()
   let original = envelope.canonical_signed()
   let exposed = envelope.signed()
   let channels = exposed
@@ -42,7 +42,7 @@ test "same signer cannot appear twice in an envelope" {
   let raw = @utf8.encode(
     "{\"signed\":{},\"signatures\":[{\"keyid\":\"x\",\"sig\":\"aa\"},{\"keyid\":\"x\",\"sig\":\"bb\"}]}",
   )
-  assert_true(parse_envelope(raw) is Err(DuplicateItem(_)))
+  assert_true(@model.parse_envelope(raw) is Err(DuplicateItem(_)))
 }
 
 ///|
@@ -55,24 +55,26 @@ test "large signature list preserves order and rejects a late duplicate" {
     entries += "{\"keyid\":\"key-" + index.to_string() + "\",\"sig\":\"aa\"}"
   }
   let prefix = "{\"signed\":{},\"signatures\":["
-  let envelope = parse_envelope(@utf8.encode(prefix + entries + "]}")).unwrap()
+  let envelope = @model.parse_envelope(@utf8.encode(prefix + entries + "]}")).unwrap()
   let signatures = envelope.signatures()
   assert_eq(signatures.length(), 512)
   assert_eq(signatures[0].keyid(), "key-0")
   assert_eq(signatures[511].keyid(), "key-511")
   let repeated = prefix + entries + ",{\"keyid\":\"key-256\",\"sig\":\"bb\"}]}"
-  assert_true(parse_envelope(@utf8.encode(repeated)) is Err(DuplicateItem(_)))
+  assert_true(
+    @model.parse_envelope(@utf8.encode(repeated)) is Err(DuplicateItem(_)),
+  )
 }
 
 ///|
 test "UTC expiry parser validates Gregorian dates" {
-  assert_true(valid_utc_time("2028-02-29T23:59:59Z"))
-  assert_false(valid_utc_time("2027-02-29T23:59:59Z"))
-  assert_false(valid_utc_time("2026-13-01T00:00:00Z"))
-  assert_false(valid_utc_time("2026-09-25T24:00:00Z"))
-  assert_false(valid_utc_time("2026-09-25T12:00:60Z"))
-  assert_true(expired("2026-09-25T00:00:00Z", "2026-09-25T00:00:00Z"))
-  assert_false(expired("2026-09-25T00:00:01Z", "2026-09-25T00:00:00Z"))
+  assert_true(@model.valid_utc_time("2028-02-29T23:59:59Z"))
+  assert_false(@model.valid_utc_time("2027-02-29T23:59:59Z"))
+  assert_false(@model.valid_utc_time("2026-13-01T00:00:00Z"))
+  assert_false(@model.valid_utc_time("2026-09-25T24:00:00Z"))
+  assert_false(@model.valid_utc_time("2026-09-25T12:00:60Z"))
+  assert_true(@model.expired("2026-09-25T00:00:00Z", "2026-09-25T00:00:00Z"))
+  assert_false(@model.expired("2026-09-25T00:00:01Z", "2026-09-25T00:00:00Z"))
 }
 
 ///|
@@ -82,11 +84,13 @@ test "common metadata refuses unknown spec and invalid expiry" {
       "{\"_type\":\"root\",\"spec_version\":\"2.0.0\",\"version\":1,\"expires\":\"2030-01-01T00:00:00Z\"}",
     ),
   ).unwrap()
-  assert_true(parse_common(malformed, "root") is Err(UnsupportedSpec(_)))
+  assert_true(@model.parse_common(malformed, "root") is Err(UnsupportedSpec(_)))
   let expired_format = @wire.parse(
     @utf8.encode(
       "{\"_type\":\"root\",\"spec_version\":\"1.0.0\",\"version\":1,\"expires\":\"2030-02-30T00:00:00Z\"}",
     ),
   ).unwrap()
-  assert_true(parse_common(expired_format, "root") is Err(InvalidValue(_, _)))
+  assert_true(
+    @model.parse_common(expired_format, "root") is Err(InvalidValue(_, _)),
+  )
 }

@@ -13,7 +13,7 @@ fn root_fixture(threshold : Int32, omit_targets~ : Bool = false) -> Bytes {
 
 ///|
 test "root parser validates keys, thresholds and top-level roles" {
-  let root = parse_root(root_fixture(1)).unwrap()
+  let root = @model.parse_root(root_fixture(1)).unwrap()
   assert_eq(root.common().version(), 1)
   assert_true(root.consistent_snapshot())
   assert_eq(root.keys().length(), 1)
@@ -23,30 +23,39 @@ test "root parser validates keys, thresholds and top-level roles" {
 ///|
 test "root parser retains unattainable threshold for role verification" {
   assert_eq(
-    parse_root(root_fixture(2)).unwrap().role("snapshot").unwrap().threshold(),
+    @model.parse_root(root_fixture(2))
+    .unwrap()
+    .role("snapshot")
+    .unwrap()
+    .threshold(),
     2,
   )
 }
 
 ///|
 test "root role rejects repeated or undeclared signing key ids" {
-  let root = parse_root(root_fixture(1)).unwrap()
+  let root = @model.parse_root(root_fixture(1)).unwrap()
   let id = root.keys()[0].keyid()
   let text = @utf8.decode(root_fixture(1)) catch { _ => abort("fixture") }
   let one = "\"keyids\":[\"\{id}\"]"
   let repeated = text.replace(old=one, new="\"keyids\":[\"\{id}\",\"\{id}\"]")
-  assert_true(parse_root(@utf8.encode(repeated)) is Err(DuplicateItem(_)))
+  assert_true(
+    @model.parse_root(@utf8.encode(repeated)) is Err(DuplicateItem(_)),
+  )
   let undeclared = text.replace(
     old=one,
     new="\"keyids\":[\"not-a-declared-key\"]",
   )
-  assert_true(parse_root(@utf8.encode(undeclared)) is Err(InvalidValue(_, _)))
+  assert_true(
+    @model.parse_root(@utf8.encode(undeclared)) is Err(InvalidValue(_, _)),
+  )
 }
 
 ///|
 test "root parser requires every top-level role" {
   assert_true(
-    parse_root(root_fixture(1, omit_targets=true)) is Err(MissingField(_)),
+    @model.parse_root(root_fixture(1, omit_targets=true))
+    is Err(MissingField(_)),
   )
 }
 
@@ -58,12 +67,12 @@ test "root parser rejects a forged key identifier" {
     old="0000000000000000000000000000000000000000000000000000000000000000",
     new="1111111111111111111111111111111111111111111111111111111111111111",
   )
-  assert_true(parse_root(@utf8.encode(forged)) is Err(InvalidKeyId(_)))
+  assert_true(@model.parse_root(@utf8.encode(forged)) is Err(InvalidKeyId(_)))
 }
 
 ///|
 test "public root role access cannot mutate trusted key authorization" {
-  let root = parse_root(root_fixture(1)).unwrap()
+  let root = @model.parse_root(root_fixture(1)).unwrap()
   let exported = root.role("root").unwrap().keyids()
   let original = exported[0]
   exported[0] = "attacker"

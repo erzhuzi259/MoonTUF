@@ -3,5 +3,4 @@ import {
   "erzhuzi259/moontuf/model",
   "erzhuzi259/moontuf/trust",
   "erzhuzi259/moontuf/wire",
-  "moonbitlang/core/json",
 }

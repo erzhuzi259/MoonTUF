@@ -3,7 +3,7 @@ fn delegated_chain(
   top_key : @testkit.Signer,
   delegated_key : @testkit.Signer,
   delegated_raw : Bytes,
-) -> Client {
+) -> @client.Client {
   let top = @testkit.top_with_delegation(
     1, "apps", "apps/*.bin", top_key, delegated_key,
   )
@@ -11,7 +11,7 @@ fn delegated_chain(
     1, top, "apps", delegated_raw, top_key,
   )
   let timestamp = @testkit.timestamp(1, 1, snapshot, top_key)
-  open_trusted_root(
+  @client.open_trusted_root(
     @testkit.root(1, top_key, [top_key], consistent_snapshot=true),
     "2026-09-25T00:00:00Z",
   )
@@ -87,10 +87,10 @@ test "delegation visit budget permits the exact single-role boundary" {
     1, top, "apps", delegated, top_key,
   )
   let timestamp = @testkit.timestamp(1, 1, snapshot, top_key)
-  let client = open_trusted_root(
+  let client = @client.open_trusted_root(
       @testkit.root(1, top_key, [top_key]),
       "2026-09-25T00:00:00Z",
-      budget=budgets(max_delegated_roles=1),
+      budget=@client.budgets(max_delegated_roles=1),
     )
     .unwrap()
     .accept_timestamp(timestamp)
@@ -131,7 +131,7 @@ fn graph_client(
   top : Bytes,
   delegated : Array[(String, Bytes)],
   max_roles~ : Int32 = 32,
-) -> Client {
+) -> @client.Client {
   let records = delegated.copy()
   records.push(("targets", top))
   let entries : Array[String] = []
@@ -146,10 +146,10 @@ fn graph_client(
   let signed = "{\"_type\":\"snapshot\",\"spec_version\":\"1.0.0\",\"version\":1,\"expires\":\"2030-01-01T00:00:00Z\",\"meta\":{\{entries.join(",")}}}"
   let snapshot = @testkit.signed_envelope(signed, [key])
   let timestamp = @testkit.timestamp(1, 1, snapshot, key)
-  open_trusted_root(
+  @client.open_trusted_root(
     @testkit.root(1, key, [key], consistent_snapshot=true),
     "2026-09-25T00:00:00Z",
-    budget=budgets(max_delegated_roles=max_roles),
+    budget=@client.budgets(max_delegated_roles=max_roles),
   )
   .unwrap()
   .accept_timestamp(timestamp)
