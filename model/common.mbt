@@ -12,6 +12,9 @@ pub(all) enum ModelError {
 } derive(Debug)
 
 ///|
+pub extend ModelError with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 pub struct Signature {
   keyid : String
   sig : String
@@ -164,12 +167,15 @@ fn text_field(
 }
 
 ///|
-fn positive_int(value : @wire.Value, path : String) -> Result[Int, ModelError] {
+fn positive_int(
+  value : @wire.Value,
+  path : String,
+) -> Result[Int32, ModelError] {
   let lexeme = match value.as_integer() {
     Some(number) => number
     None => return Err(WrongType(path))
   }
-  let parsed : Int = @string.parse_int(lexeme) catch {
+  let parsed : Int32 = @string.parse_int(lexeme) catch {
     _ => return Err(InvalidValue(path, "integer exceeds implementation limit"))
   }
   if parsed <= 0 {
@@ -183,12 +189,12 @@ fn positive_int(value : @wire.Value, path : String) -> Result[Int, ModelError] {
 fn nonnegative_int(
   value : @wire.Value,
   path : String,
-) -> Result[Int, ModelError] {
+) -> Result[Int32, ModelError] {
   let lexeme = match value.as_integer() {
     Some(number) => number
     None => return Err(WrongType(path))
   }
-  let parsed : Int = @string.parse_int(lexeme) catch {
+  let parsed : Int32 = @string.parse_int(lexeme) catch {
     _ => return Err(InvalidValue(path, "integer exceeds implementation limit"))
   }
   if parsed < 0 {
@@ -225,7 +231,7 @@ fn positive_field(
   value : @wire.Value,
   name : String,
   parent : String,
-) -> Result[Int, ModelError] {
+) -> Result[Int32, ModelError] {
   let child = match field(value, name, parent) {
     Ok(found) => found
     Err(error) => return Err(error)
@@ -277,7 +283,7 @@ fn spec_version(value : @wire.Value) -> Result[String, ModelError] {
 pub struct Common {
   kind : String
   spec_version : String
-  version : Int
+  version : Int32
   expires : String
 }
 
@@ -287,7 +293,7 @@ pub fn Common::kind(self : Common) -> String {
 }
 
 ///|
-pub fn Common::version(self : Common) -> Int {
+pub fn Common::version(self : Common) -> Int32 {
   self.version
 }
 
@@ -336,7 +342,7 @@ pub fn parse_common(
 ///|
 pub fn parse_envelope(
   raw : Bytes,
-  limits? : @wire.Limits = @wire.limits(),
+  limits~ : @wire.Limits = @wire.limits(),
 ) -> Result[Envelope, ModelError] {
   let parsed = match @wire.parse(raw, limits~) {
     Ok(value) => value

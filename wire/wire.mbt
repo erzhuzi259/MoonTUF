@@ -12,35 +12,44 @@ pub(all) enum Value {
 } derive(Debug)
 
 ///|
+pub extend Value with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 pub(all) enum WireError {
-  InputTooLarge(Int, Int)
-  NestingTooDeep(Int)
-  TooManyNodes(Int)
-  TooManyMembers(Int)
-  NumberTooLong(Int)
-  InvalidJson(Int, String)
+  InputTooLarge(Int32, Int32)
+  NestingTooDeep(Int32)
+  TooManyNodes(Int32)
+  TooManyMembers(Int32)
+  NumberTooLong(Int32)
+  InvalidJson(Int32, String)
   DuplicateKey(String)
-  NonIntegerNumber(Int)
+  NonIntegerNumber(Int32)
 } derive(Debug, Eq)
 
 ///|
+pub extend WireError with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend WireError with Eq::{equal, not_equal}
+
+///|
 pub struct Limits {
-  max_bytes : Int
-  max_depth : Int
-  max_nodes : Int
-  max_members : Int
-  max_number_digits : Int
+  max_bytes : Int32
+  max_depth : Int32
+  max_nodes : Int32
+  max_members : Int32
+  max_number_digits : Int32
 }
 
 ///|
 /// Construct limits for untrusted metadata. A hard depth cap prevents a caller
 /// accidentally asking the recursive parser to exhaust the native stack.
 pub fn limits(
-  max_bytes? : Int = 1024 * 1024,
-  max_depth? : Int = 64,
-  max_nodes? : Int = 100000,
-  max_members? : Int = 10000,
-  max_number_digits? : Int = 80,
+  max_bytes~ : Int32 = 1024 * 1024,
+  max_depth~ : Int32 = 64,
+  max_nodes~ : Int32 = 100000,
+  max_members~ : Int32 = 10000,
+  max_number_digits~ : Int32 = 80,
 ) -> Limits {
   {
     max_bytes: if max_bytes < 0 {
@@ -76,17 +85,17 @@ pub fn limits(
 }
 
 ///|
-pub fn Limits::max_bytes(self : Limits) -> Int {
+pub fn Limits::max_bytes(self : Limits) -> Int32 {
   self.max_bytes
 }
 
 ///|
-pub fn Limits::max_depth(self : Limits) -> Int {
+pub fn Limits::max_depth(self : Limits) -> Int32 {
   self.max_depth
 }
 
 ///|
-pub fn Limits::max_nodes(self : Limits) -> Int {
+pub fn Limits::max_nodes(self : Limits) -> Int32 {
   self.max_nodes
 }
 
@@ -94,16 +103,16 @@ pub fn Limits::max_nodes(self : Limits) -> Int {
 priv struct Parser {
   data : Bytes
   limits : Limits
-  mut nodes : Int
+  mut nodes : Int32
 }
 
 ///|
-fn Parser::at(self : Parser, offset : Int, ch : Int) -> Bool {
+fn Parser::at(self : Parser, offset : Int32, ch : Int32) -> Bool {
   offset < self.data.length() && self.data[offset].to_int() == ch
 }
 
 ///|
-fn Parser::space(self : Parser, start : Int) -> Int {
+fn Parser::space(self : Parser, start : Int32) -> Int32 {
   let mut cursor = start
   while cursor < self.data.length() {
     let ch = self.data[cursor].to_int()
@@ -119,8 +128,8 @@ fn Parser::space(self : Parser, start : Int) -> Int {
 ///|
 fn Parser::read_string(
   self : Parser,
-  start : Int,
-) -> Result[(String, Int), WireError] {
+  start : Int32,
+) -> Result[(String, Int32), WireError] {
   if !self.at(start, 34) {
     return Err(InvalidJson(start, "expected quoted string"))
   }
@@ -155,15 +164,15 @@ fn Parser::read_string(
 }
 
 ///|
-fn digit(ch : Int) -> Bool {
+fn digit(ch : Int32) -> Bool {
   ch >= 48 && ch <= 57
 }
 
 ///|
 fn Parser::read_integer(
   self : Parser,
-  start : Int,
-) -> Result[(Value, Int), WireError] {
+  start : Int32,
+) -> Result[(Value, Int32), WireError] {
   let mut cursor = start
   if self.at(cursor, 45) {
     cursor += 1
@@ -203,10 +212,10 @@ fn Parser::read_integer(
 ///|
 fn Parser::literal(
   self : Parser,
-  start : Int,
+  start : Int32,
   word : String,
   value : Value,
-) -> Result[(Value, Int), WireError] {
+) -> Result[(Value, Int32), WireError] {
   let bytes = @utf8.encode(word)
   if start + bytes.length() > self.data.length() {
     return Err(InvalidJson(start, "truncated literal"))
@@ -222,9 +231,9 @@ fn Parser::literal(
 ///|
 fn Parser::value(
   self : Parser,
-  start : Int,
-  depth : Int,
-) -> Result[(Value, Int), WireError] {
+  start : Int32,
+  depth : Int32,
+) -> Result[(Value, Int32), WireError] {
   if depth > self.limits.max_depth {
     return Err(NestingTooDeep(depth))
   }
@@ -262,9 +271,9 @@ fn Parser::value(
 ///|
 fn Parser::object(
   self : Parser,
-  start : Int,
-  depth : Int,
-) -> Result[(Value, Int), WireError] {
+  start : Int32,
+  depth : Int32,
+) -> Result[(Value, Int32), WireError] {
   let entries : Array[(String, Value)] = []
   let names : Array[String] = []
   let mut cursor = self.space(start + 1)
@@ -307,8 +316,8 @@ fn Parser::object(
 fn finish_object(
   entries : Array[(String, Value)],
   names : Array[String],
-  end : Int,
-) -> Result[(Value, Int), WireError] {
+  end : Int32,
+) -> Result[(Value, Int32), WireError] {
   names.sort()
   for index in 1..<names.length() {
     if names[index - 1] == names[index] {
@@ -321,9 +330,9 @@ fn finish_object(
 ///|
 fn Parser::array(
   self : Parser,
-  start : Int,
-  depth : Int,
-) -> Result[(Value, Int), WireError] {
+  start : Int32,
+  depth : Int32,
+) -> Result[(Value, Int32), WireError] {
   let entries : Array[Value] = []
   let mut cursor = self.space(start + 1)
   if self.at(cursor, 93) {
@@ -355,7 +364,7 @@ fn Parser::array(
 /// before any metadata object is allowed to reach signature verification.
 pub fn parse(
   input : Bytes,
-  limits? : Limits = limits(),
+  limits~ : Limits = limits(),
 ) -> Result[Value, WireError] {
   if input.length() > limits.max_bytes {
     return Err(InputTooLarge(input.length(), limits.max_bytes))

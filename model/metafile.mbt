@@ -2,19 +2,33 @@
 /// A trusted parent metadata document may pin a child to an exact version,
 /// length and hash. Optional length/hash fields follow TUF's metadata format.
 pub struct MetaFile {
-  version : Int
-  length : Int?
+  version : Int32
+  length : Int32?
+  hashes : Array[(String, String)]
   sha256 : String?
 }
 
 ///|
-pub fn MetaFile::version(self : MetaFile) -> Int {
+pub fn MetaFile::version(self : MetaFile) -> Int32 {
   self.version
 }
 
 ///|
-pub fn MetaFile::length(self : MetaFile) -> Int? {
+pub fn MetaFile::length(self : MetaFile) -> Int32? {
   self.length
+}
+
+///|
+pub fn MetaFile::hashes(self : MetaFile) -> Array[(String, String)] {
+  self.hashes.copy()
+}
+
+///|
+pub fn MetaFile::preferred_hash(self : MetaFile) -> (String, String) {
+  match hash_value(self.hashes, "sha256") {
+    Some(value) => ("sha256", value)
+    None => ("sha512", hash_value(self.hashes, "sha512").unwrap_or(""))
+  }
 }
 
 ///|
@@ -23,40 +37,64 @@ pub fn MetaFile::sha256(self : MetaFile) -> String? {
 }
 
 ///|
-fn sha256_field(
+fn hash_value(hashes : Array[(String, String)], name : String) -> String? {
+  for (algorithm, digest) in hashes {
+    if name == algorithm {
+      return Some(digest)
+    }
+  }
+  None
+}
+
+///|
+fn read_hashes(
   raw : @wire.Value,
   path : String,
-) -> Result[String?, ModelError] {
-  let hashes = match raw.field("hashes") {
-    None => return Ok(None)
+  required : Bool,
+) -> Result[Array[(String, String)], ModelError] {
+  let value = match raw.field("hashes") {
     Some(value) => value
-  }
-  ignore(
-    match object(hashes, path + ".hashes") {
-      Ok(entries) => entries
-      Err(error) => return Err(error)
-    },
-  )
-  let digest = match hashes.field("sha256") {
     None =>
-      return Err(
-        InvalidValue(path + ".hashes", "SHA-256 is required by this profile"),
-      )
-    Some(value) =>
-      match string(value, path + ".hashes.sha256") {
-        Ok(text) => text
-        Err(error) => return Err(error)
+      if required {
+        return Err(MissingField(path + ".hashes"))
+      } else {
+        return Ok([])
       }
   }
-  let decoded = match @crypto.decode_hex(digest) {
-    Ok(bytes) => bytes
-    Err(_) =>
-      return Err(InvalidValue(path + ".hashes.sha256", "invalid hex digest"))
+  let fields = match object(value, path + ".hashes") {
+    Ok(value) => value
+    Err(error) => return Err(error)
   }
-  if decoded.length() != 32 {
-    return Err(InvalidValue(path + ".hashes.sha256", "expected 32-byte digest"))
+  let hashes : Array[(String, String)] = []
+  for (name, value) in fields {
+    let digest = match string(value, path + ".hashes." + name) {
+      Ok(value) => value
+      Err(error) => return Err(error)
+    }
+    let bytes = match @crypto.decode_hex(digest) {
+      Ok(value) => value
+      Err(_) => return Err(InvalidValue(path, "invalid digest"))
+    }
+    let size = if name == "sha256" {
+      32
+    } else if name == "sha512" {
+      64
+    } else {
+      0
+    }
+    if size > 0 {
+      if bytes.length() != size {
+        return Err(InvalidValue(path, "wrong digest length"))
+      }
+      hashes.push((name, @crypto.encode_hex(bytes)))
+    }
   }
-  Ok(Some(digest))
+  // If hashes were supplied, at least one must be supported. Never silently
+  // treat an unsupported-only hash list as an unpinned metadata descriptor.
+  if hashes.is_empty() {
+    return Err(InvalidValue(path, "no supported hashes"))
+  }
+  Ok(hashes)
 }
 
 ///|
@@ -79,11 +117,11 @@ fn meta_file(raw : @wire.Value, path : String) -> Result[MetaFile, ModelError] {
         Err(error) => return Err(error)
       }
   }
-  let sha256 = match sha256_field(raw, path) {
+  let hashes = match read_hashes(raw, path, false) {
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  Ok({ version, length, sha256, })
+  Ok({ version, length, sha256: hash_value(hashes, "sha256"), hashes, })
 }
 
 ///|
@@ -111,7 +149,7 @@ pub fn Timestamp::snapshot(self : Timestamp) -> MetaFile {
 ///|
 pub fn parse_timestamp(
   raw : Bytes,
-  limits? : @wire.Limits = @wire.limits(),
+  limits~ : @wire.Limits = @wire.limits(),
 ) -> Result[Timestamp, ModelError] {
   let envelope = match parse_envelope(raw, limits~) {
     Ok(value) => value
@@ -182,7 +220,7 @@ pub fn Snapshot::metafile(self : Snapshot, name : String) -> MetaFile? {
 ///|
 pub fn parse_snapshot(
   raw : Bytes,
-  limits? : @wire.Limits = @wire.limits(),
+  limits~ : @wire.Limits = @wire.limits(),
 ) -> Result[Snapshot, ModelError] {
   let envelope = match parse_envelope(raw, limits~) {
     Ok(value) => value

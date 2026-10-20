@@ -1,7 +1,7 @@
 ///|
 fn timestamp_fixture(
-  version : Int,
-  snapshot_version : Int,
+  version : Int32,
+  snapshot_version : Int32,
   key : @testkit.Signer,
 ) -> Bytes {
   let artifact = @utf8.encode("abc")

@@ -5,8 +5,8 @@
 /// The result is all-or-error when `max_results` is exceeded.
 pub fn Client::top_level_inventory(
   self : Client,
-  prefix? : String = "",
-  max_results? : Int = 1024,
+  prefix~ : String = "",
+  max_results~ : Int32 = 1024,
 ) -> Result[Array[@model.TargetFile], ClientError] {
   match self.check_complete_fresh() {
     Ok(_) => ()

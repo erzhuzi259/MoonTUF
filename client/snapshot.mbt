@@ -5,7 +5,7 @@ fn check_metafile(
   name : String,
   raw : Bytes,
   description : @model.MetaFile,
-  maximum : Int,
+  maximum : Int32,
 ) -> Result[Unit, ClientError] {
   match guard_size(name, raw, maximum) {
     Ok(_) => ()
@@ -20,12 +20,8 @@ fn check_metafile(
       }
     None => ()
   }
-  match description.sha256() {
-    Some(expected) =>
-      if !@crypto.matches_sha256(raw, expected) {
-        return Err(HashMismatch(name))
-      }
-    None => ()
+  if !@crypto.matches_hashes(raw, description.hashes()) {
+    return Err(HashMismatch(name))
   }
   Ok(())
 }

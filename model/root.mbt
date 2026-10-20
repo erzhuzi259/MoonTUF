@@ -1,6 +1,8 @@
 ///|
 pub struct PublicKey {
   keyid : String
+  keytype : String
+  scheme : String
   public_hex : String
 }
 
@@ -17,7 +19,7 @@ pub fn PublicKey::public_hex(self : PublicKey) -> String {
 ///|
 pub struct RoleKeys {
   keyids : Array[String]
-  threshold : Int
+  threshold : Int32
 }
 
 ///|
@@ -26,7 +28,7 @@ pub fn RoleKeys::keyids(self : RoleKeys) -> Array[String] {
 }
 
 ///|
-pub fn RoleKeys::threshold(self : RoleKeys) -> Int {
+pub fn RoleKeys::threshold(self : RoleKeys) -> Int32 {
   self.threshold
 }
 
@@ -81,6 +83,16 @@ pub fn Root::key(self : Root, keyid : String) -> PublicKey? {
 }
 
 ///|
+pub fn PublicKey::keytype(self : PublicKey) -> String {
+  self.keytype
+}
+
+///|
+pub fn PublicKey::scheme(self : PublicKey) -> String {
+  self.scheme
+}
+
+///|
 fn read_key(keyid : String, raw : @wire.Value) -> Result[PublicKey, ModelError] {
   ignore(
     match object(raw, "signed.keys." + keyid) {
@@ -96,11 +108,6 @@ fn read_key(keyid : String, raw : @wire.Value) -> Result[PublicKey, ModelError] 
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  if keytype != "ed25519" || scheme != "ed25519" {
-    return Err(
-      InvalidValue("signed.keys." + keyid, "unsupported key type or scheme"),
-    )
-  }
   let keyval = match field(raw, "keyval", "signed.keys." + keyid) {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -110,18 +117,11 @@ fn read_key(keyid : String, raw : @wire.Value) -> Result[PublicKey, ModelError] 
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  let decoded = match @crypto.decode_hex(public_hex) {
-    Ok(value) => value
-    Err(_) =>
-      return Err(
-        InvalidValue("signed.keys." + keyid + ".keyval.public", "invalid hex"),
-      )
-  }
-  if decoded.length() != 32 {
+  if !@crypto.valid_public_key(keytype, scheme, public_hex) {
     return Err(
       InvalidValue(
-        "signed.keys." + keyid + ".keyval.public",
-        "Ed25519 key must have 32 bytes",
+        "signed.keys." + keyid,
+        "unsupported or malformed public key",
       ),
     )
   }
@@ -129,7 +129,7 @@ fn read_key(keyid : String, raw : @wire.Value) -> Result[PublicKey, ModelError] 
   if calculated != keyid {
     return Err(InvalidKeyId(keyid))
   }
-  Ok({ keyid, public_hex, })
+  Ok({ keyid, keytype, scheme, public_hex, })
 }
 
 ///|
@@ -190,7 +190,7 @@ fn read_role(
 /// candidate root itself) before committing it.
 pub fn parse_root(
   raw : Bytes,
-  limits? : @wire.Limits = @wire.limits(),
+  limits~ : @wire.Limits = @wire.limits(),
 ) -> Result[Root, ModelError] {
   let envelope = match parse_envelope(raw, limits~) {
     Ok(value) => value

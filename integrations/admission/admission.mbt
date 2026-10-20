@@ -18,10 +18,13 @@ pub(all) enum AdmissionError {
 } derive(Debug)
 
 ///|
+pub extend AdmissionError with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 pub fn policy(
-  prefix? : String = "",
-  max_bytes? : Int64 = 512L * 1024L * 1024L,
-  allowed_final_roles? : Array[String] = [],
+  prefix~ : String = "",
+  max_bytes~ : Int64 = 512L * 1024L * 1024L,
+  allowed_final_roles~ : Array[String] = [],
 ) -> Result[Policy, AdmissionError] {
   if prefix != "" && !@model.safe_target_path(prefix) {
     return Err(InvalidPolicy("unsafe namespace"))
@@ -65,8 +68,8 @@ pub struct Ticket {
   repository_name : String
   length : Int64
   sha256 : String
-  root_version : Int
-  snapshot_version : Int
+  root_version : Int32
+  snapshot_version : Int32
   target_role_chain : Array[String]
 }
 
@@ -91,12 +94,12 @@ pub fn Ticket::sha256(self : Ticket) -> String {
 }
 
 ///|
-pub fn Ticket::root_version(self : Ticket) -> Int {
+pub fn Ticket::root_version(self : Ticket) -> Int32 {
   self.root_version
 }
 
 ///|
-pub fn Ticket::snapshot_version(self : Ticket) -> Int {
+pub fn Ticket::snapshot_version(self : Ticket) -> Int32 {
   self.snapshot_version
 }
 
@@ -136,7 +139,7 @@ pub fn evaluate(
   path : String,
   policy : Policy,
   load : (String) -> Bytes?,
-  installed_sha256? : String = "",
+  installed_sha256~ : String = "",
 ) -> Result[Admission, AdmissionError] {
   if !@model.safe_target_path(path) {
     return Err(OutsideNamespace(path))

@@ -1,6 +1,12 @@
 import {
+  "moonbitlang/core/debug",
   "moonbitlang/core/encoding/utf8",
   "moonbitstack/mooncrypt/hash/sha2",
   "moonbitstack/mooncrypt/sign/ed25519",
   "moonbitstack/mooncrypt/spec",
+  "moonbitstack/mooncrypt/rsa",
+  "moonbitstack/mooncrypt/sign/ecdsa",
+  "moonbitstack/mooncrypt/asn1",
+  "moonbitlang/core/encoding/base64",
+  "moonbitlang/core/bigint",
 }

@@ -6,19 +6,19 @@ pub(all) enum ClientError {
   ClockRollback(String, String)
   Expired(String)
   MissingStage(String)
-  VersionMismatch(String, Int, Int)
-  Rollback(String, Int, Int)
-  Unchanged(String, Int)
-  ResourceLimit(String, Int, Int)
+  VersionMismatch(String, Int32, Int32)
+  Rollback(String, Int32, Int32)
+  Unchanged(String, Int32)
+  ResourceLimit(String, Int32, Int32)
   TargetResourceLimit(String, Int64, Int64)
   LengthMismatch(String, Int64, Int64)
   HashMismatch(String)
   MissingDescriptor(String)
-  RootRotationLimit(Int)
+  RootRotationLimit(Int32)
   TargetNotFound(String)
   MetadataUnavailable(String)
   MetadataFetchFailure(String)
-  DelegationLimit(Int)
+  DelegationLimit(Int32)
   AlreadyFinished
   CheckpointMalformed(String)
   CheckpointRootMismatch
@@ -26,32 +26,35 @@ pub(all) enum ClientError {
 } derive(Debug)
 
 ///|
+pub extend ClientError with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 /// Budgets protect the caller from untrusted metadata and target-file input.
 /// They are enforced before parsing or hashing and are never inferred from
 /// untrusted length fields alone.
 pub struct Budgets {
-  max_root_bytes : Int
-  max_timestamp_bytes : Int
-  max_snapshot_bytes : Int
-  max_targets_bytes : Int
+  max_root_bytes : Int32
+  max_timestamp_bytes : Int32
+  max_snapshot_bytes : Int32
+  max_targets_bytes : Int32
   max_target_bytes : Int64
-  max_root_rotations : Int
-  max_delegated_roles : Int
-  max_json_depth : Int
-  max_json_nodes : Int
+  max_root_rotations : Int32
+  max_delegated_roles : Int32
+  max_json_depth : Int32
+  max_json_nodes : Int32
 }
 
 ///|
 pub fn budgets(
-  max_root_bytes? : Int = 512 * 1024,
-  max_timestamp_bytes? : Int = 256 * 1024,
-  max_snapshot_bytes? : Int = 2 * 1024 * 1024,
-  max_targets_bytes? : Int = 8 * 1024 * 1024,
-  max_target_bytes? : Int64 = 64L * 1024L * 1024L,
-  max_root_rotations? : Int = 32,
-  max_delegated_roles? : Int = 32,
-  max_json_depth? : Int = 64,
-  max_json_nodes? : Int = 100000,
+  max_root_bytes~ : Int32 = 512 * 1024,
+  max_timestamp_bytes~ : Int32 = 256 * 1024,
+  max_snapshot_bytes~ : Int32 = 2 * 1024 * 1024,
+  max_targets_bytes~ : Int32 = 8 * 1024 * 1024,
+  max_target_bytes~ : Int64 = 64L * 1024L * 1024L,
+  max_root_rotations~ : Int32 = 32,
+  max_delegated_roles~ : Int32 = 32,
+  max_json_depth~ : Int32 = 64,
+  max_json_nodes~ : Int32 = 100000,
 ) -> Budgets {
   {
     max_root_bytes: bounded_budget(max_root_bytes, 16 * 1024 * 1024),
@@ -67,7 +70,7 @@ pub fn budgets(
 }
 
 ///|
-fn bounded_budget(value : Int, ceiling : Int) -> Int {
+fn bounded_budget(value : Int32, ceiling : Int32) -> Int32 {
   if value < 1 {
     1
   } else if value > ceiling {
@@ -89,7 +92,7 @@ fn bounded_budget64(value : Int64, ceiling : Int64) -> Int64 {
 }
 
 ///|
-fn wire_limits(max_bytes : Int, budget : Budgets) -> @wire.Limits {
+fn wire_limits(max_bytes : Int32, budget : Budgets) -> @wire.Limits {
   @wire.limits(
     max_bytes~,
     max_depth=budget.max_json_depth,
@@ -101,7 +104,7 @@ fn wire_limits(max_bytes : Int, budget : Budgets) -> @wire.Limits {
 fn guard_size(
   label : String,
   bytes : Bytes,
-  maximum : Int,
+  maximum : Int32,
 ) -> Result[Unit, ClientError] {
   if bytes.length() > maximum {
     Err(ResourceLimit(label, bytes.length(), maximum))
@@ -134,27 +137,27 @@ pub struct Client {
   targets : @model.Targets?
   update_start : String
   budget : Budgets
-  root_rotations : Int
+  root_rotations : Int32
   root_chain_complete : Bool
 }
 
 ///|
-pub fn Client::root_version(self : Client) -> Int {
+pub fn Client::root_version(self : Client) -> Int32 {
   self.root.common().version()
 }
 
 ///|
-pub fn Client::timestamp_version(self : Client) -> Int? {
+pub fn Client::timestamp_version(self : Client) -> Int32? {
   self.timestamp.map(value => value.common().version())
 }
 
 ///|
-pub fn Client::snapshot_version(self : Client) -> Int? {
+pub fn Client::snapshot_version(self : Client) -> Int32? {
   self.snapshot.map(value => value.common().version())
 }
 
 ///|
-pub fn Client::targets_version(self : Client) -> Int? {
+pub fn Client::targets_version(self : Client) -> Int32? {
   self.targets.map(value => value.common().version())
 }
 
@@ -203,7 +206,7 @@ pub fn Client::consistent_snapshot(self : Client) -> Bool {
 pub fn open_trusted_root(
   trusted_root_raw : Bytes,
   update_start : String,
-  budget? : Budgets = budgets(),
+  budget~ : Budgets = budgets(),
 ) -> Result[Client, ClientError] {
   if !@model.valid_utc_time(update_start) {
     return Err(InvalidStartTime(update_start))

@@ -27,11 +27,12 @@ pub fn VerifiedStream::sha256(self : VerifiedStream) -> String {
 pub struct TargetStream {
   path : String
   expected_length : Int64
-  expected_sha256 : String
+  expected_hashes : Array[(String, String)]
   maximum : Int64
   mut seen : Int64
   mut finished : Bool
   hasher : @sha2.Hasher
+  hasher512 : @sha2.Hasher
 }
 
 ///|
@@ -66,11 +67,12 @@ fn stream_for_descriptor(
   Ok({
     path: descriptor.path(),
     expected_length: descriptor.length(),
-    expected_sha256: descriptor.sha256(),
+    expected_hashes: descriptor.hashes(),
     maximum,
     seen: 0L,
     finished: false,
     hasher: @sha2.Hasher::new(kind=@sha2.Sha256),
+    hasher512: @sha2.Hasher::new(kind=@sha2.Sha512),
   })
 }
 
@@ -133,6 +135,7 @@ pub fn TargetStream::write(
     )
   }
   self.hasher.write(chunk[:])
+  self.hasher512.write(chunk[:])
   self.seen += chunk_length
   Ok(())
 }
@@ -152,12 +155,13 @@ pub fn TargetStream::finish(
     )
   }
   let digest = self.hasher.finish()
-  let expected = match @crypto.decode_hex(self.expected_sha256) {
-    Ok(value) => value
-    Err(_) => return Err(HashMismatch("target:" + self.path))
+  let computed256 = @crypto.encode_hex(digest)
+  let computed512 = @crypto.encode_hex(self.hasher512.finish())
+  for (name, expected) in self.expected_hashes {
+    let actual = if name == "sha256" { computed256 } else { computed512 }
+    if actual != expected {
+      return Err(HashMismatch("target:" + self.path))
+    }
   }
-  if !@spec.eq(digest[:], expected[:]) {
-    return Err(HashMismatch("target:" + self.path))
-  }
-  Ok({ path: self.path, length: self.seen, sha256: self.expected_sha256, })
+  Ok({ path: self.path, length: self.seen, sha256: computed256, })
 }

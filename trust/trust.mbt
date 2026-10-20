@@ -1,11 +1,14 @@
 ///|
 pub(all) enum TrustError {
   UnknownRole(String)
-  InvalidThreshold(Int, Int)
-  ThresholdNotMet(String, Int, Int)
+  InvalidThreshold(Int32, Int32)
+  ThresholdNotMet(String, Int32, Int32)
   MalformedSignature(String)
   UnsupportedKey(String)
 } derive(Debug)
+
+///|
+pub extend TrustError with @moonbitlang/core/debug.Debug::{to_repr}
 
 ///|
 fn contains_sorted_keyid(keys : Array[String], keyid : String) -> Bool {
@@ -52,9 +55,9 @@ pub fn verify_threshold(
   envelope : @model.Envelope,
   keys : Array[@model.PublicKey],
   keyids : Array[String],
-  threshold : Int,
+  threshold : Int32,
   role_name : String,
-) -> Result[Int, TrustError] {
+) -> Result[Int32, TrustError] {
   if threshold < 1 || threshold > keyids.length() {
     return Err(InvalidThreshold(threshold, keyids.length()))
   }
@@ -82,7 +85,13 @@ pub fn verify_threshold(
       None => return Err(UnsupportedKey(id))
     }
     let verified = match
-      @crypto.verify_ed25519(key.public_hex(), signed, signature.sig()) {
+      @crypto.verify_signature(
+        key.keytype(),
+        key.scheme(),
+        key.public_hex(),
+        signed,
+        signature.sig(),
+      ) {
       Ok(value) => value
       Err(_) => return Err(MalformedSignature(id))
     }
@@ -102,7 +111,7 @@ pub fn verify_top_level(
   root : @model.Root,
   role_name : String,
   envelope : @model.Envelope,
-) -> Result[Int, TrustError] {
+) -> Result[Int32, TrustError] {
   let role = match root.role(role_name) {
     Some(value) => value
     None => return Err(UnknownRole(role_name))
@@ -120,7 +129,7 @@ pub fn verify_top_level(
 /// A root must be self-signed even when its bytes are distributed through an
 /// out-of-band trusted bootstrap channel. Self-signing does not establish that
 /// bootstrap trust; the embedding application must authenticate the anchor.
-pub fn verify_root_self(root : @model.Root) -> Result[Int, TrustError] {
+pub fn verify_root_self(root : @model.Root) -> Result[Int32, TrustError] {
   verify_top_level(root, "root", root.envelope())
 }
 
@@ -129,7 +138,7 @@ pub fn verify_delegated(
   parent : @model.Delegations,
   role : @model.DelegatedRole,
   envelope : @model.Envelope,
-) -> Result[Int, TrustError] {
+) -> Result[Int32, TrustError] {
   verify_threshold(
     envelope,
     parent.keys(),

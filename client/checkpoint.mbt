@@ -2,7 +2,7 @@
 /// Checkpoints are a local persistence format, not a trust bootstrap. The
 /// caller must protect the locally trusted root against replacement. The
 /// trailing SHA-256 detects accidental corruption, not malicious tampering.
-fn append_u32(output : Array[Byte], value : Int) -> Unit {
+fn append_u32(output : Array[Byte], value : Int32) -> Unit {
   output.push(((value >> 24) & 255).to_byte())
   output.push(((value >> 16) & 255).to_byte())
   output.push(((value >> 8) & 255).to_byte())
@@ -10,7 +10,7 @@ fn append_u32(output : Array[Byte], value : Int) -> Unit {
 }
 
 ///|
-fn read_u32(input : Bytes, start : Int) -> Int? {
+fn read_u32(input : Bytes, start : Int32) -> Int32? {
   if start < 0 || start > input.length() - 4 {
     return None
   }
@@ -35,7 +35,11 @@ fn append_bytes(output : Array[Byte], input : Bytes) -> Unit {
 }
 
 ///|
-fn read_bytes(input : Bytes, cursor : Int, body_end : Int) -> (Bytes, Int)? {
+fn read_bytes(
+  input : Bytes,
+  cursor : Int32,
+  body_end : Int32,
+) -> (Bytes, Int32)? {
   let length = match read_u32(input, cursor) {
     Some(value) => value
     None => return None
@@ -167,7 +171,7 @@ pub fn restore_checkpoint(
   encoded : Bytes,
   trusted_root_raw : Bytes,
   update_start : String,
-  budget? : Budgets = budgets(),
+  budget~ : Budgets = budgets(),
 ) -> Result[Client, ClientError] {
   let parts = match decode_checkpoint(encoded, budget) {
     Ok(value) => value

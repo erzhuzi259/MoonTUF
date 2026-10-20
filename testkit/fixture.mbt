@@ -49,11 +49,11 @@ pub fn signed_envelope(signed_json : String, signers : Array[Signer]) -> Bytes {
 
 ///|
 pub fn root(
-  version : Int,
+  version : Int32,
   authority : Signer,
   signers : Array[Signer],
-  expires? : String = "2030-01-01T00:00:00Z",
-  consistent_snapshot? : Bool = false,
+  expires~ : String = "2030-01-01T00:00:00Z",
+  consistent_snapshot~ : Bool = false,
 ) -> Bytes {
   let keyid = authority.keyid
   let key_json = authority.key_json
@@ -65,11 +65,11 @@ pub fn root(
 
 ///|
 pub fn timestamp(
-  version : Int,
-  snapshot_version : Int,
+  version : Int32,
+  snapshot_version : Int32,
   snapshot_raw : Bytes,
   signer : Signer,
-  expires? : String = "2030-01-01T00:00:00Z",
+  expires~ : String = "2030-01-01T00:00:00Z",
 ) -> Bytes {
   let length = snapshot_raw.length()
   let digest = @crypto.sha256_hex(snapshot_raw)
@@ -79,11 +79,11 @@ pub fn timestamp(
 
 ///|
 pub fn snapshot(
-  version : Int,
-  targets_version : Int,
+  version : Int32,
+  targets_version : Int32,
   targets_raw : Bytes,
   signer : Signer,
-  expires? : String = "2030-01-01T00:00:00Z",
+  expires~ : String = "2030-01-01T00:00:00Z",
 ) -> Bytes {
   let length = targets_raw.length()
   let digest = @crypto.sha256_hex(targets_raw)
@@ -93,11 +93,11 @@ pub fn snapshot(
 
 ///|
 pub fn targets(
-  version : Int,
+  version : Int32,
   path : String,
   target_raw : Bytes,
   signer : Signer,
-  expires? : String = "2030-01-01T00:00:00Z",
+  expires~ : String = "2030-01-01T00:00:00Z",
 ) -> Bytes {
   let length = target_raw.length()
   let digest = @crypto.sha256_hex(target_raw)
@@ -107,9 +107,9 @@ pub fn targets(
 
 ///|
 pub fn empty_targets(
-  version : Int,
+  version : Int32,
   signer : Signer,
-  expires? : String = "2030-01-01T00:00:00Z",
+  expires~ : String = "2030-01-01T00:00:00Z",
 ) -> Bytes {
   let signed_json = "{\"_type\":\"targets\",\"spec_version\":\"1.0.0\",\"version\":\{version},\"expires\":\"\{expires}\",\"targets\":{}}"
   signed_envelope(signed_json, [signer])
@@ -117,12 +117,12 @@ pub fn empty_targets(
 
 ///|
 pub fn top_with_delegation(
-  version : Int,
+  version : Int32,
   role_name : String,
   pattern : String,
   top_signer : Signer,
   delegated_signer : Signer,
-  terminating? : Bool = false,
+  terminating~ : Bool = false,
 ) -> Bytes {
   let delegated_id = delegated_signer.keyid
   let delegated_key = delegated_signer.key_json
@@ -134,12 +134,12 @@ pub fn top_with_delegation(
 
 ///|
 pub fn snapshot_with_delegation(
-  version : Int,
+  version : Int32,
   top_targets : Bytes,
   delegated_role : String,
   delegated_targets : Bytes,
   signer : Signer,
-  delegated_version? : Int = 1,
+  delegated_version~ : Int32 = 1,
 ) -> Bytes {
   let top_length = top_targets.length()
   let top_hash = @crypto.sha256_hex(top_targets)

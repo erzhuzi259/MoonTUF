@@ -1,5 +1,5 @@
 ///|
-fn ascii_digit(text : String, start : Int, count : Int) -> Int? {
+fn ascii_digit(text : String, start : Int32, count : Int32) -> Int32? {
   let bytes = @utf8.encode(text)
   if start < 0 || start + count > bytes.length() {
     return None
@@ -16,12 +16,12 @@ fn ascii_digit(text : String, start : Int, count : Int) -> Int? {
 }
 
 ///|
-fn leap(year : Int) -> Bool {
+fn leap(year : Int32) -> Bool {
   year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
 }
 
 ///|
-fn month_days(year : Int, month : Int) -> Int {
+fn month_days(year : Int32, month : Int32) -> Int32 {
   match month {
     1 | 3 | 5 | 7 | 8 | 10 | 12 => 31
     4 | 6 | 9 | 11 => 30

@@ -24,7 +24,7 @@ pub struct InventoryDiff {
   added : Array[@model.TargetFile]
   removed : Array[@model.TargetFile]
   changed : Array[TargetContentChange]
-  unchanged : Int
+  unchanged : Int32
 }
 
 ///|
@@ -45,7 +45,7 @@ pub fn InventoryDiff::changed(
 }
 
 ///|
-pub fn InventoryDiff::unchanged(self : InventoryDiff) -> Int {
+pub fn InventoryDiff::unchanged(self : InventoryDiff) -> Int32 {
   self.unchanged
 }
 
@@ -56,9 +56,9 @@ pub fn InventoryDiff::unchanged(self : InventoryDiff) -> Int {
 pub fn Client::diff_top_level_inventory(
   self : Client,
   previous : Client,
-  prefix? : String = "",
-  max_results? : Int = 1024,
-  max_changes? : Int = 2048,
+  prefix~ : String = "",
+  max_results~ : Int32 = 1024,
+  max_changes~ : Int32 = 2048,
 ) -> Result[InventoryDiff, ClientError] {
   if max_changes < 0 {
     return Err(ResourceLimit("inventory change budget", 0, max_changes))

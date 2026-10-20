@@ -110,7 +110,7 @@ fn Client::search_delegations(
     Some(value) => value
     None => return Ok(Miss)
   }
-  for role in delegations.roles() {
+  for role in delegations.roles_for_path(path) {
     if !role.matches_path(path) {
       continue
     }
@@ -218,10 +218,10 @@ pub fn Client::verify_target(
       ),
     )
   }
-  if !@crypto.matches_sha256(candidate, descriptor.sha256()) {
+  if !@crypto.matches_hashes(candidate, descriptor.hashes()) {
     return Err(HashMismatch("target:" + path))
   }
-  Ok({ path, bytes: candidate, sha256: descriptor.sha256(), })
+  Ok({ path, bytes: candidate, sha256: @crypto.sha256_hex(candidate), })
 }
 
 ///|
@@ -241,7 +241,9 @@ pub fn Client::target_request_name(
     .split("/")
     .map(part => part.to_owned())
     .collect()
-  let mut result = descriptor.sha256() + "." + parts[parts.length() - 1]
+  let mut result = descriptor.preferred_hash().1 +
+    "." +
+    parts[parts.length() - 1]
   let mut index = parts.length() - 2
   while index >= 0 {
     result = parts[index] + "/" + result

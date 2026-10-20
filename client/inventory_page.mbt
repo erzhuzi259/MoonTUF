@@ -3,9 +3,9 @@
 /// targets require separate role resolution and are not included.
 pub struct InventoryPage {
   items : Array[@model.TargetFile]
-  offset : Int
-  total : Int
-  next_offset : Int?
+  offset : Int32
+  total : Int32
+  next_offset : Int32?
 }
 
 ///|
@@ -14,17 +14,17 @@ pub fn InventoryPage::items(self : InventoryPage) -> Array[@model.TargetFile] {
 }
 
 ///|
-pub fn InventoryPage::offset(self : InventoryPage) -> Int {
+pub fn InventoryPage::offset(self : InventoryPage) -> Int32 {
   self.offset
 }
 
 ///|
-pub fn InventoryPage::total(self : InventoryPage) -> Int {
+pub fn InventoryPage::total(self : InventoryPage) -> Int32 {
   self.total
 }
 
 ///|
-pub fn InventoryPage::next_offset(self : InventoryPage) -> Int? {
+pub fn InventoryPage::next_offset(self : InventoryPage) -> Int32? {
   self.next_offset
 }
 
@@ -33,9 +33,9 @@ pub fn InventoryPage::next_offset(self : InventoryPage) -> Int? {
 /// to accept an unbounded result. Offset is measured in matching targets.
 pub fn Client::top_level_inventory_page(
   self : Client,
-  offset : Int,
-  page_size : Int,
-  prefix? : String = "",
+  offset : Int32,
+  page_size : Int32,
+  prefix~ : String = "",
 ) -> Result[InventoryPage, ClientError] {
   match self.check_complete_fresh() {
     Ok(_) => ()

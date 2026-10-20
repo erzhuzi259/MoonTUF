@@ -1,0 +1,23 @@
+name: TUF conformance
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: hustcer/setup-moonbit@v1.23
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Build actual MoonBit verification bridge
+        run: |
+          moon build --target js --release
+          chmod +x tools/conformance/client
+      - uses: theupdateframework/tuf-conformance@v2
+        with:
+          entrypoint: tools/conformance/client

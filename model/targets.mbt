@@ -3,6 +3,7 @@
 pub struct TargetFile {
   path : String
   length : Int64
+  hashes : Array[(String, String)]
   sha256 : String
   custom : @wire.Value?
 }
@@ -15,6 +16,19 @@ pub fn TargetFile::path(self : TargetFile) -> String {
 ///|
 pub fn TargetFile::length(self : TargetFile) -> Int64 {
   self.length
+}
+
+///|
+pub fn TargetFile::hashes(self : TargetFile) -> Array[(String, String)] {
+  self.hashes.copy()
+}
+
+///|
+pub fn TargetFile::preferred_hash(self : TargetFile) -> (String, String) {
+  match hash_value(self.hashes, "sha256") {
+    Some(value) => ("sha256", value)
+    None => ("sha512", hash_value(self.hashes, "sha512").unwrap_or(""))
+  }
 }
 
 ///|
@@ -82,12 +96,11 @@ fn target_file(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  let sha256 = match sha256_field(raw, "signed.targets." + path) {
-    Ok(Some(value)) => value
-    Ok(None) =>
-      return Err(MissingField("signed.targets." + path + ".hashes.sha256"))
+  let hashes = match read_hashes(raw, "signed.targets." + path, true) {
+    Ok(value) => value
     Err(error) => return Err(error)
   }
+  let sha256 = hash_value(hashes, "sha256").unwrap_or("")
   let custom = match raw.field("custom") {
     None => None
     Some(value) =>
@@ -96,14 +109,14 @@ fn target_file(
         None => return Err(WrongType("signed.targets." + path + ".custom"))
       }
   }
-  Ok({ path, length, sha256, custom, })
+  Ok({ path, length, hashes, sha256, custom, })
 }
 
 ///|
 pub struct DelegatedRole {
   name : String
   keyids : Array[String]
-  threshold : Int
+  threshold : Int32
   paths : Array[String]?
   path_hash_prefixes : Array[String]?
   terminating : Bool
@@ -120,7 +133,7 @@ pub fn DelegatedRole::keyids(self : DelegatedRole) -> Array[String] {
 }
 
 ///|
-pub fn DelegatedRole::threshold(self : DelegatedRole) -> Int {
+pub fn DelegatedRole::threshold(self : DelegatedRole) -> Int32 {
   self.threshold
 }
 
@@ -145,6 +158,7 @@ pub fn DelegatedRole::terminating(self : DelegatedRole) -> Bool {
 pub struct Delegations {
   keys : Array[PublicKey]
   roles : Array[DelegatedRole]
+  succinct : SuccinctRoles?
 }
 
 ///|
@@ -289,13 +303,6 @@ fn parse_delegations(raw : @wire.Value) -> Result[Delegations, ModelError] {
       Err(error) => return Err(error)
     },
   )
-  if raw.field("succinct_roles") is Some(_) {
-    return Err(
-      InvalidValue(
-        "signed.delegations.succinct_roles", "not supported by this profile",
-      ),
-    )
-  }
   let key_values = match field(raw, "keys", "signed.delegations") {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -316,6 +323,18 @@ fn parse_delegations(raw : @wire.Value) -> Result[Delegations, ModelError] {
     known_keyids.push(keyid)
   }
   known_keyids.sort()
+  if raw.field("succinct_roles") is Some(value) {
+    if raw.field("roles") is Some(_) {
+      return Err(
+        InvalidValue("delegations", "roles and succinct_roles are exclusive"),
+      )
+    }
+    let succinct = match parse_succinct(value, known_keyids) {
+      Ok(value) => value
+      Err(error) => return Err(error)
+    }
+    return Ok({ keys, roles: [], succinct: Some(succinct), })
+  }
   let role_values = match field(raw, "roles", "signed.delegations") {
     Ok(value) => value
     Err(error) => return Err(error)
@@ -337,7 +356,7 @@ fn parse_delegations(raw : @wire.Value) -> Result[Delegations, ModelError] {
   if sorted_duplicate(names) is Some(name) {
     return Err(DuplicateItem("signed.delegations.roles[].name=" + name))
   }
-  Ok({ keys, roles, })
+  Ok({ keys, roles, succinct: None, })
 }
 
 ///|
@@ -381,7 +400,7 @@ pub fn Targets::target(self : Targets, path : String) -> TargetFile? {
 ///|
 pub fn parse_targets(
   raw : Bytes,
-  limits? : @wire.Limits = @wire.limits(),
+  limits~ : @wire.Limits = @wire.limits(),
 ) -> Result[Targets, ModelError] {
   let envelope = match parse_envelope(raw, limits~) {
     Ok(value) => value

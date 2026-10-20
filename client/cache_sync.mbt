@@ -12,7 +12,7 @@ pub(all) enum CachePlanError {
   Client(ClientError)
   InvalidCacheEntry(String)
   DuplicateCachedPath(String)
-  CacheLimit(Int)
+  CacheLimit(Int32)
 }
 
 ///|
@@ -68,9 +68,9 @@ fn valid_cache_digest(digest : String) -> Bool {
 pub fn Client::plan_top_level_sync(
   self : Client,
   cached : Array[CachedTarget],
-  prefix? : String = "",
-  max_targets? : Int = 1024,
-  max_cached? : Int = 4096,
+  prefix~ : String = "",
+  max_targets~ : Int32 = 1024,
+  max_cached~ : Int32 = 4096,
 ) -> Result[CacheSyncPlan, CachePlanError] {
   let trusted = match
     self.top_level_inventory(prefix~, max_results=max_targets) {

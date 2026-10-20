@@ -12,9 +12,12 @@ pub(all) enum UrlError {
   ResponseTooLarge(Int64, Int64)
   ResponseLengthMismatch(Int64, Int64)
   RequestMeterClosed
-  UnexpectedHttpStatus(Int)
+  UnexpectedHttpStatus(Int32)
   UnsupportedContentEncoding
 } derive(Debug)
+
+///|
+pub extend UrlError with @moonbitlang/core/debug.Debug::{to_repr}
 
 ///|
 pub struct RepositoryUrls {
@@ -94,13 +97,13 @@ fn valid_base(value : String) -> Bool {
 }
 
 ///|
-fn hex_digit(value : Int) -> String {
+fn hex_digit(value : Int32) -> String {
   let digits = "0123456789ABCDEF"
   digits[value:value + 1].to_owned()
 }
 
 ///|
-fn unreserved(value : Int) -> Bool {
+fn unreserved(value : Int32) -> Bool {
   (value >= 65 && value <= 90) ||
   (value >= 97 && value <= 122) ||
   (value >= 48 && value <= 57) ||

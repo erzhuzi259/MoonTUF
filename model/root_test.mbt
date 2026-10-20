@@ -1,5 +1,5 @@
 ///|
-fn root_fixture(threshold : Int, omit_targets? : Bool = false) -> Bytes {
+fn root_fixture(threshold : Int32, omit_targets~ : Bool = false) -> Bytes {
   let public_hex = "0000000000000000000000000000000000000000000000000000000000000000"
   let key_json = "{\"keytype\":\"ed25519\",\"scheme\":\"ed25519\",\"keyval\":{\"public\":\"\{public_hex}\"}}"
   let parsed_key = @wire.parse(@utf8.encode(key_json)).unwrap()

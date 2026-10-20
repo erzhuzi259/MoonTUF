@@ -12,6 +12,9 @@ pub(all) enum RequestKind {
 } derive(Debug)
 
 ///|
+pub extend RequestKind with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 pub struct RequestHint {
   kind : RequestKind
   name : String
@@ -159,7 +162,7 @@ pub fn RequestHint::meter(self : RequestHint) -> RequestMeter {
 /// or hashes. Redirects and transparent decompression are not accepted here.
 pub fn RequestHint::check_response(
   self : RequestHint,
-  status_code : Int,
+  status_code : Int32,
   declared_length : Int64?,
   content_encoding : String,
 ) -> Result[Unit, UrlError] {

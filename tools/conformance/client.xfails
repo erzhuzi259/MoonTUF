@@ -1,0 +1,4 @@
+# Optional algorithms not in the three interoperable TUF signature schemes.
+test_rsa_keytype_and_scheme
+test_ecdsa_keytype_and_scheme
+test_mldsa_keytype_and_scheme

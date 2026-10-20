@@ -53,10 +53,10 @@ pub fn Client::verify_top_level_target(
       ),
     )
   }
-  if !@crypto.matches_sha256(candidate, descriptor.sha256()) {
+  if !@crypto.matches_hashes(candidate, descriptor.hashes()) {
     return Err(HashMismatch("target:" + path))
   }
-  Ok({ path, bytes: candidate, sha256: descriptor.sha256(), })
+  Ok({ path, bytes: candidate, sha256: @crypto.sha256_hex(candidate), })
 }
 
 ///|
@@ -78,7 +78,7 @@ pub fn Client::top_level_target_request_name(
     .map(part => part.to_owned())
     .collect()
   let basename = parts[parts.length() - 1]
-  let mut result = descriptor.sha256() + "." + basename
+  let mut result = descriptor.preferred_hash().1 + "." + basename
   let mut index = parts.length() - 2
   while index >= 0 {
     result = parts[index] + "/" + result

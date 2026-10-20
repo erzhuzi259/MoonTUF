@@ -130,7 +130,7 @@ fn graph_client(
   key : @testkit.Signer,
   top : Bytes,
   delegated : Array[(String, Bytes)],
-  max_roles? : Int = 32,
+  max_roles~ : Int32 = 32,
 ) -> Client {
   let records = delegated.copy()
   records.push(("targets", top))

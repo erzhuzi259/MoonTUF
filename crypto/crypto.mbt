@@ -2,15 +2,21 @@
 /// Failures at the cryptographic boundary are data errors, not panics. The
 /// verifier never falls back to a weaker scheme or accepts an unknown one.
 pub(all) enum CryptoError {
-  OddHexLength(Int)
-  InvalidHexDigit(Int)
-  InvalidPublicKeyLength(Int)
-  InvalidSignatureLength(Int)
+  OddHexLength(Int32)
+  InvalidHexDigit(Int32)
+  InvalidPublicKeyLength(Int32)
+  InvalidSignatureLength(Int32)
   UnsupportedScheme(String)
 } derive(Debug, Eq)
 
 ///|
-fn nibble(byte : Byte) -> Int? {
+pub extend CryptoError with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend CryptoError with Eq::{equal, not_equal}
+
+///|
+fn nibble(byte : Byte) -> Int32? {
   let code = byte.to_int()
   if code >= 48 && code <= 57 {
     Some(code - 48)
@@ -48,7 +54,7 @@ pub fn decode_hex(text : String) -> Result[Bytes, CryptoError] {
 }
 
 ///|
-fn hex_char(value : Int) -> Char {
+fn hex_char(value : Int32) -> Char {
   match value {
     0 => '0'
     1 => '1'
@@ -84,6 +90,28 @@ pub fn encode_hex(data : Bytes) -> String {
 ///|
 pub fn sha256(data : Bytes) -> Bytes {
   @sha2.hash(data[:], kind=@sha2.Sha256)
+}
+
+///|
+pub fn sha512_hex(data : Bytes) -> String {
+  encode_hex(@sha2.hash(data[:], kind=@sha2.Sha512))
+}
+
+///|
+pub fn matches_hashes(data : Bytes, hashes : Array[(String, String)]) -> Bool {
+  for (name, expected) in hashes {
+    let computed = if name == "sha256" {
+      sha256_hex(data)
+    } else if name == "sha512" {
+      sha512_hex(data)
+    } else {
+      return false
+    }
+    if computed != expected {
+      return false
+    }
+  }
+  true
 }
 
 ///|

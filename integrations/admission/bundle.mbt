@@ -4,15 +4,15 @@
 /// snapshot before the host starts downloading any of them.
 pub struct BundlePolicy {
   artifact_policy : Policy
-  max_files : Int
+  max_files : Int32
   max_total_bytes : Int64
 }
 
 ///|
 pub fn bundle_policy(
   artifact_policy : Policy,
-  max_files? : Int = 16,
-  max_total_bytes? : Int64 = 1024L * 1024L * 1024L,
+  max_files~ : Int32 = 16,
+  max_total_bytes~ : Int64 = 1024L * 1024L * 1024L,
 ) -> Result[BundlePolicy, AdmissionError] {
   if max_files < 1 || max_files > 1024 {
     return Err(InvalidPolicy("max_files must be between 1 and 1024"))
@@ -28,21 +28,24 @@ pub(all) enum BundleError {
   Admission(AdmissionError)
   EmptyBundle
   DuplicatePath(String)
-  TooManyFiles(Int, Int)
+  TooManyFiles(Int32, Int32)
   TotalTooLarge(Int64, Int64)
-  WrongCandidateCount(Int, Int)
-  StreamOrder(Int, Int)
-  BundleIncomplete(Int, Int)
+  WrongCandidateCount(Int32, Int32)
+  StreamOrder(Int32, Int32)
+  BundleIncomplete(Int32, Int32)
   SessionClosed
 } derive(Debug)
+
+///|
+pub extend BundleError with @moonbitlang/core/debug.Debug::{to_repr}
 
 ///|
 pub struct BundlePlan {
   tickets : Array[Ticket]
   current_paths : Array[String]
   total_bytes : Int64
-  root_version : Int
-  snapshot_version : Int
+  root_version : Int32
+  snapshot_version : Int32
 }
 
 ///|
@@ -61,12 +64,12 @@ pub fn BundlePlan::total_bytes(self : BundlePlan) -> Int64 {
 }
 
 ///|
-pub fn BundlePlan::root_version(self : BundlePlan) -> Int {
+pub fn BundlePlan::root_version(self : BundlePlan) -> Int32 {
   self.root_version
 }
 
 ///|
-pub fn BundlePlan::snapshot_version(self : BundlePlan) -> Int {
+pub fn BundlePlan::snapshot_version(self : BundlePlan) -> Int32 {
   self.snapshot_version
 }
 
@@ -79,7 +82,7 @@ pub fn plan_bundle(
   paths : Array[String],
   policy : BundlePolicy,
   load : (String) -> Bytes?,
-  installed? : Array[(String, String)] = [],
+  installed~ : Array[(String, String)] = [],
 ) -> Result[BundlePlan, BundleError] {
   if paths.length() == 0 {
     return Err(EmptyBundle)
@@ -177,18 +180,18 @@ pub fn verify_bundle(
 /// release can never be mistaken for a verified bundle.
 pub struct BundleSession {
   streams : Array[@client.TargetStream]
-  mut next_index : Int
+  mut next_index : Int32
   mut closed : Bool
   receipts : Array[@client.VerifiedStream]
 }
 
 ///|
-pub fn BundleSession::next_index(self : BundleSession) -> Int {
+pub fn BundleSession::next_index(self : BundleSession) -> Int32 {
   self.next_index
 }
 
 ///|
-pub fn BundleSession::remaining_files(self : BundleSession) -> Int {
+pub fn BundleSession::remaining_files(self : BundleSession) -> Int32 {
   self.streams.length() - self.next_index
 }
 
@@ -227,7 +230,7 @@ pub fn open_bundle_session(
 /// entire session.
 pub fn BundleSession::write_file(
   self : BundleSession,
-  index : Int,
+  index : Int32,
   chunk : Bytes,
 ) -> Result[Unit, BundleError] {
   if self.closed {
@@ -250,7 +253,7 @@ pub fn BundleSession::write_file(
 /// file in the bundle has been finalized; it is not an installation permit.
 pub fn BundleSession::finish_file(
   self : BundleSession,
-  index : Int,
+  index : Int32,
 ) -> Result[Unit, BundleError] {
   if self.closed {
     return Err(SessionClosed)

@@ -1,7 +1,7 @@
 ///|
 /// Compare decoded object keys in UTF-8 byte order for the selected JSON POUF.
 /// This intentionally avoids locale-sensitive or UTF-16 collation.
-fn compare_keys(left : String, right : String) -> Int {
+fn compare_keys(left : String, right : String) -> Int32 {
   let a = @utf8.encode(left)
   let b = @utf8.encode(right)
   let common = if a.length() < b.length() { a.length() } else { b.length() }
@@ -63,7 +63,7 @@ fn append_canonical(value : Value, output : Array[Byte]) -> Unit {
       output.push(93)
     }
     Dict(entries) => {
-      let order : Array[Int] = []
+      let order : Array[Int32] = []
       for index in 0..<entries.length() {
         order.push(index)
       }

@@ -6,6 +6,9 @@ pub(all) enum RefreshStatus {
 } derive(Debug)
 
 ///|
+pub extend RefreshStatus with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
 /// The host must distinguish an authoritative absence (normally HTTP 404)
 /// from a transport, timeout, or local I/O failure. Only an absent N+1 root
 /// ends root probing; a failure must never silently complete the root chain.
@@ -14,6 +17,9 @@ pub(all) enum MetadataResponse {
   MetadataAbsent
   MetadataFailure
 } derive(Debug)
+
+///|
+pub extend MetadataResponse with @moonbitlang/core/debug.Debug::{to_repr}
 
 ///|
 /// Metadata accepted during a refresh. Its name is the repository path that
