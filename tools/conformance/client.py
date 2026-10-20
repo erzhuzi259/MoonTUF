@@ -28,7 +28,7 @@ def atomic_write(path: Path, data: bytes):
 
 def fetch(base, name, maximum):
     # The MoonBit core validates paths; quote per segment, preserving only '/'.
-    url = base.rstrip("/") + "/" + urllib.parse.quote(name, safe="/")
+    url = base.rstrip("/") + "/" + urllib.parse.quote(name, safe="" if name.endswith(".json") else "/")
     try:
         with urllib.request.urlopen(url, timeout=20) as response:
             data = response.read(maximum + 1)
@@ -56,7 +56,7 @@ def main():
     if args.command == "init":
         atomic_write(store / "root.json", args.trusted_root.read_bytes())
         return 0
-    state_path = store / "moontuf-state.json"
+    state_path = store / "moontuf-state.bin"
     state = state_path.read_bytes() if state_path.exists() else b""
     root = bytes.fromhex(json.loads(state)["root"]) if state else (store / "root.json").read_bytes()
     request = {"root": root.hex(), "state": state.hex(),
@@ -100,7 +100,7 @@ def main():
             file = store / (role + ".json")
             if decoded.get(role):
                 atomic_write(file, bytes.fromhex(decoded[role]))
-            else:
+            elif role in ("timestamp", "snapshot") and not decoded.get("timestampBaseline") and not decoded.get("previousSnapshot"):
                 file.unlink(missing_ok=True)
     if not result.get("ok"):
         print(result.get("error", "verification failed"), file=sys.stderr)

@@ -1,5 +1,5 @@
 ///|
-/// Python fnmatchcase-style classes; ! negates and '/' is ordinary.
+/// Python fnmatchcase-style classes; ! negates; wildcards never cross '/'.
 fn class_match(
   pattern : Array[Char],
   start : Int32,
@@ -54,7 +54,7 @@ pub fn path_pattern_matches(pattern : String, path : String) -> Bool {
     if p[i] == '*' {
       next[0] = row[0]
       for j = 1; j <= t.length(); j = j + 1 {
-        next[j] = row[j] || next[j - 1]
+        next[j] = row[j] || (next[j - 1] && t[j - 1] != '/')
       }
       i += 1
     } else {
@@ -73,7 +73,7 @@ pub fn path_pattern_matches(pattern : String, path : String) -> Bool {
         } else {
           p[i] == t[j - 1]
         }
-        next[j] = row[j - 1] && matched
+        next[j] = row[j - 1] && matched && (t[j - 1] != '/' || p[i] == '/')
       }
       i = next_i
     }

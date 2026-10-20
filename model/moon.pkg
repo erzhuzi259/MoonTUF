@@ -5,3 +5,7 @@ import {
   "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/string",
 }
+
+import {
+  "erzhuzi259/moontuf/testkit",
+} for "test"

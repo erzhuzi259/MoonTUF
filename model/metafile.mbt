@@ -263,5 +263,21 @@ pub fn parse_snapshot(
 
 ///|
 pub fn safe_metadata_name(name : String) -> Bool {
-  name.has_suffix(".json") && safe_target_path(name)
+  name.has_suffix(".json") &&
+  safe_role_name(name[0:name.length() - 5].to_owned())
+}
+
+///|
+/// Role names are opaque URL components, NOT filesystem paths. Adapters must
+/// percent-encode the whole name (including slashes) before network access.
+pub fn safe_role_name(name : String) -> Bool {
+  if name.is_empty() || @utf8.encode(name).length() > 4096 {
+    return false
+  }
+  for ch in name.iter() {
+    if ch.to_int() < 32 || ch.to_int() == 127 {
+      return false
+    }
+  }
+  true
 }

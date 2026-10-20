@@ -269,10 +269,10 @@ fn spec_version(value : @wire.Value) -> Result[String, ModelError] {
     .split(".")
     .map(part => part.to_owned())
     .collect()
-  if parts.length() != 3 ||
+  if (parts.length() != 3 && parts.length() != 2) ||
     parts[0] != "1" ||
     !semver_digit(parts[1]) ||
-    !semver_digit(parts[2]) {
+    (parts.length() == 3 && !semver_digit(parts[2])) {
     Err(UnsupportedSpec(version))
   } else {
     Ok(version)

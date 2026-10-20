@@ -10,16 +10,16 @@ test "timestamp binds snapshot version and optional integrity" {
 }
 
 ///|
-test "snapshot requires targets metadata and safe names" {
+test "snapshot requires targets metadata and opaque role names" {
   let valid = @utf8.encode(
     "{\"signed\":{\"_type\":\"snapshot\",\"spec_version\":\"1.0.0\",\"version\":1,\"expires\":\"2030-01-01T00:00:00Z\",\"meta\":{\"targets.json\":{\"version\":1},\"delegated/a.json\":{\"version\":2}}},\"signatures\":[]}",
   )
   let snapshot = parse_snapshot(valid).unwrap()
   assert_eq(snapshot.metafile("delegated/a.json").unwrap().version(), 2)
   assert_true(safe_metadata_name("delegated/a.json"))
-  assert_false(safe_metadata_name("../evil.json"))
-  assert_false(safe_metadata_name("C:\\evil.json"))
-  assert_false(safe_metadata_name("a/./evil.json"))
+  assert_true(safe_metadata_name("../evil.json"))
+  assert_true(safe_metadata_name("C:\\evil.json"))
+  assert_true(safe_metadata_name("a/./evil.json"))
 }
 
 ///|

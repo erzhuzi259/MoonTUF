@@ -1,13 +1,13 @@
 ///|
-test "path glob wildcard crosses directory boundaries as fnmatchcase requires" {
+test "path glob wildcard does not cross directory boundaries" {
   assert_true(path_pattern_matches("apps/*.tgz", "apps/demo.tgz"))
-  assert_true(path_pattern_matches("apps/*.tgz", "apps/nested/demo.tgz"))
-  assert_true(path_pattern_matches("*.tgz", "apps/demo.tgz"))
+  assert_false(path_pattern_matches("apps/*.tgz", "apps/nested/demo.tgz"))
+  assert_false(path_pattern_matches("*.tgz", "apps/demo.tgz"))
   assert_true(path_pattern_matches("app-?.tgz", "app-2.tgz"))
   assert_false(path_pattern_matches("app-?.tgz", "app-12.tgz"))
   assert_true(path_pattern_matches("a**b", "ab"))
   assert_true(path_pattern_matches("a**b", "axxb"))
-  assert_true(path_pattern_matches("a**b", "a/x/b"))
+  assert_false(path_pattern_matches("a**b", "a/x/b"))
 }
 
 ///|

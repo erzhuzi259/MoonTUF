@@ -217,7 +217,7 @@ fn delegated_role(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  if !safe_target_path(name) || name.has_suffix(".json") {
+  if !safe_role_name(name) {
     return Err(InvalidValue(parent + ".name", "unsafe or reserved role name"))
   }
   let role_keys = match read_role(name, raw, known_keyids) {
