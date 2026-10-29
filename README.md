@@ -130,3 +130,14 @@ public fixtures, not runtime trust decisions or copied implementation code.
 See [third-party provenance](THIRD_PARTY_NOTICES.md),
 [complexity and limits](docs/PERFORMANCE.md), and
 [contribution/security reporting](CONTRIBUTING.md).
+
+## Source-workspace extensions (unreleased)
+
+Compiler requirement: **moonc >= 0.10.16**. See
+[the API, scope and complexity notes](docs/FEATURE_EXTENSIONS.md) for **批量制品验证与元数据到期预检**.
+These additions are available in this source tree; the previously published package
+version does not yet contain them. Run the assertion-based example from the repository:
+
+```sh
+moon run examples/batch_preflight --target wasm-gc --deny-warn
+```

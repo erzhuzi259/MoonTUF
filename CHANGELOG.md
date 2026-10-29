@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- 批量制品验证与元数据到期预检，含资源边界、回归测试及 `examples/batch_preflight`。
+- CI 显式验证 moonc >= 0.10.16，并运行新增示例。
+
 ## 0.2.1 — Public profile description
 
 - Correct `profile_name()` to identify the TUF 1.0.37 client workflow and all
