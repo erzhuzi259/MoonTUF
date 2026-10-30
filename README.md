@@ -8,7 +8,7 @@ expiry defenses, persistent accepted state, and exact artifact verification.
 Applications, plugins, firmware, models and configuration packages share the
 same interfaces; the host supplies transport, protected storage and installation.
 
-**0.2.1 scope:** TUF 1.0.37 necessary client functionality, Ed25519,
+**Client profile (retained in 0.3.0):** TUF 1.0.37 necessary client functionality, Ed25519,
 RSA-PSS-SHA256, ECDSA P-256/SHA256, SHA-256/SHA-512, ordinary and succinct
 delegations. The official upstream suite has passed **113 tests**, with six
 expected failures limited to optional algorithm extensions. This is test
@@ -21,10 +21,21 @@ See [exact results and revisions](docs/CONFORMANCE.md).
 - [Complete runnable scenarios](docs/SCENARIOS.md)
 - [Protocol profile](docs/POUF.md) and [security contract](docs/SECURITY.md)
 
+## New in 0.3.0
+
+- `Client::verify_batch` verifies explicit artifact bytes under one fresh trusted client, preflights aggregate budgets before delegated metadata loading, shares bounded metadata fetches and returns a batch only after every item passes.
+- `Client::expiry_horizon` reports the four retained top-level roles due by a future UTC horizon, without advancing the trusted update time or extending metadata validity.
+
+Requires **moonc >= 0.10.16**. The host still owns transport, atomic installation and protected state. Expiry preflight does not enumerate unretained delegated roles. See [API, budgets and complexity](docs/FEATURE_EXTENSIONS.md).
+
+```sh
+moon run examples/batch_preflight --target wasm-gc --deny-warn
+```
+
 ## Install
 
 ```sh
-moon add erzhuzi259/moontuf@0.2.1
+moon add erzhuzi259/moontuf@0.3.0
 ```
 
 Select subpackages in `moon.pkg`:
@@ -130,14 +141,3 @@ public fixtures, not runtime trust decisions or copied implementation code.
 See [third-party provenance](THIRD_PARTY_NOTICES.md),
 [complexity and limits](docs/PERFORMANCE.md), and
 [contribution/security reporting](CONTRIBUTING.md).
-
-## Source-workspace extensions (unreleased)
-
-Compiler requirement: **moonc >= 0.10.16**. See
-[the API, scope and complexity notes](docs/FEATURE_EXTENSIONS.md) for **批量制品验证与元数据到期预检**.
-These additions are available in this source tree; the previously published package
-version does not yet contain them. Run the assertion-based example from the repository:
-
-```sh
-moon run examples/batch_preflight --target wasm-gc --deny-warn
-```
