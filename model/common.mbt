@@ -1,6 +1,7 @@
 ///|
 /// Metadata conversion failures retain a field path, so a caller can report
 /// malformed remote input without treating it as an internal exception.
+#derive(Debug)
 pub(all) enum ModelError {
   Wire(@wire.WireError)
   MissingField(String)
@@ -9,7 +10,7 @@ pub(all) enum ModelError {
   DuplicateItem(String)
   UnsupportedSpec(String)
   InvalidKeyId(String)
-} derive(Debug)
+}
 
 ///|
 pub extend ModelError with @moonbitlang/core/debug.Debug::{to_repr}

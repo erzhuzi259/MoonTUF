@@ -8,6 +8,7 @@ pub struct Policy {
 }
 
 ///|
+#derive(Debug)
 pub(all) enum AdmissionError {
   InvalidPolicy(String)
   OutsideNamespace(String)
@@ -15,7 +16,7 @@ pub(all) enum AdmissionError {
   TooLarge(Int64, Int64)
   Client(@client.ClientError)
   StaleTicket
-} derive(Debug)
+}
 
 ///|
 pub extend AdmissionError with @moonbitlang/core/debug.Debug::{to_repr}

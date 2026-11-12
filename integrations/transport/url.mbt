@@ -2,6 +2,7 @@
 /// URL construction is separate from networking. The host may pass these
 /// addresses to its HTTP client, but must still cap responses and verify
 /// every returned metadata document or target before using it.
+#derive(Debug)
 pub(all) enum UrlError {
   InvalidBase(String)
   InvalidMetadataName(String)
@@ -14,7 +15,7 @@ pub(all) enum UrlError {
   RequestMeterClosed
   UnexpectedHttpStatus(Int32)
   UnsupportedContentEncoding
-} derive(Debug)
+}
 
 ///|
 pub extend UrlError with @moonbitlang/core/debug.Debug::{to_repr}

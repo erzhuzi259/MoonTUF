@@ -1,11 +1,12 @@
 ///|
+#derive(Debug)
 pub(all) enum TrustError {
   UnknownRole(String)
   InvalidThreshold(Int32, Int32)
   ThresholdNotMet(String, Int32, Int32)
   MalformedSignature(String)
   UnsupportedKey(String)
-} derive(Debug)
+}
 
 ///|
 pub extend TrustError with @moonbitlang/core/debug.Debug::{to_repr}

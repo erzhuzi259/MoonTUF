@@ -24,6 +24,7 @@ pub fn bundle_policy(
 }
 
 ///|
+#derive(Debug)
 pub(all) enum BundleError {
   Admission(AdmissionError)
   EmptyBundle
@@ -34,7 +35,7 @@ pub(all) enum BundleError {
   StreamOrder(Int32, Int32)
   BundleIncomplete(Int32, Int32)
   SessionClosed
-} derive(Debug)
+}
 
 ///|
 pub extend BundleError with @moonbitlang/core/debug.Debug::{to_repr}

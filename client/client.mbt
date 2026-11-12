@@ -1,4 +1,5 @@
 ///|
+#derive(Debug)
 pub(all) enum ClientError {
   Model(@model.ModelError)
   Trust(@trust.TrustError)
@@ -23,7 +24,7 @@ pub(all) enum ClientError {
   CheckpointMalformed(String)
   CheckpointRootMismatch
   InvalidPath(String)
-} derive(Debug)
+}
 
 ///|
 pub extend ClientError with @moonbitlang/core/debug.Debug::{to_repr}

@@ -21,6 +21,9 @@ See [exact results and revisions](docs/CONFORMANCE.md).
 - [Complete runnable scenarios](docs/SCENARIOS.md)
 - [Protocol profile](docs/POUF.md) and [security contract](docs/SECURITY.md)
 
+The source and CI checks were validated with the official MoonBit toolchain
+(`moon 0.1.20261104`, `moonc v0.10.20+65efd5b93`). Use this toolchain or a compatible newer release to build from source.
+
 ## New in 0.3.0
 
 - `Client::verify_batch` verifies explicit artifact bytes under one fresh trusted client, preflights aggregate budgets before delegated metadata loading, shares bounded metadata fetches and returns a batch only after every item passes.

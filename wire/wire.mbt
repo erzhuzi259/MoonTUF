@@ -2,6 +2,7 @@
 /// TUF's signed JSON is deliberately narrower than general JSON: all numbers
 /// are integers and their original spelling must remain exact. A dedicated AST
 /// avoids floating-point round trips in versions, lengths and canonical bytes.
+#derive(Debug)
 pub(all) enum Value {
   Null
   Boolean(Bool)
@@ -9,12 +10,13 @@ pub(all) enum Value {
   Text(String)
   List(Array[Value])
   Dict(Array[(String, Value)])
-} derive(Debug)
+}
 
 ///|
 pub extend Value with @moonbitlang/core/debug.Debug::{to_repr}
 
 ///|
+#derive(Debug, Eq)
 pub(all) enum WireError {
   InputTooLarge(Int32, Int32)
   NestingTooDeep(Int32)
@@ -24,7 +26,7 @@ pub(all) enum WireError {
   InvalidJson(Int32, String)
   DuplicateKey(String)
   NonIntegerNumber(Int32)
-} derive(Debug, Eq)
+}
 
 ///|
 pub extend WireError with @moonbitlang/core/debug.Debug::{to_repr}

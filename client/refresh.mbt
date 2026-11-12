@@ -1,9 +1,10 @@
 ///|
+#derive(Debug)
 pub(all) enum RefreshStatus {
   Complete
   Unchanged
   Failed(ClientError)
-} derive(Debug)
+}
 
 ///|
 pub extend RefreshStatus with @moonbitlang/core/debug.Debug::{to_repr}
@@ -12,11 +13,12 @@ pub extend RefreshStatus with @moonbitlang/core/debug.Debug::{to_repr}
 /// The host must distinguish an authoritative absence (normally HTTP 404)
 /// from a transport, timeout, or local I/O failure. Only an absent N+1 root
 /// ends root probing; a failure must never silently complete the root chain.
+#derive(Debug)
 pub(all) enum MetadataResponse {
   MetadataPresent(Bytes)
   MetadataAbsent
   MetadataFailure
-} derive(Debug)
+}
 
 ///|
 pub extend MetadataResponse with @moonbitlang/core/debug.Debug::{to_repr}

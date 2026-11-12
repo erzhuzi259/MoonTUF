@@ -3,13 +3,14 @@
 /// bytes with its own transport, caps their actual length, and passes them
 /// into the client for cryptographic verification. Hints keep the host's
 /// fetch path and size limit aligned with the trust machine.
+#derive(Debug)
 pub(all) enum RequestKind {
   RootMetadata
   TimestampMetadata
   SnapshotMetadata
   TargetsMetadata
   TargetFile
-} derive(Debug)
+}
 
 ///|
 pub extend RequestKind with @moonbitlang/core/debug.Debug::{to_repr}

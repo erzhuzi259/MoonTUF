@@ -1,13 +1,14 @@
 ///|
 /// Failures at the cryptographic boundary are data errors, not panics. The
 /// verifier never falls back to a weaker scheme or accepts an unknown one.
+#derive(Debug, Eq)
 pub(all) enum CryptoError {
   OddHexLength(Int32)
   InvalidHexDigit(Int32)
   InvalidPublicKeyLength(Int32)
   InvalidSignatureLength(Int32)
   UnsupportedScheme(String)
-} derive(Debug, Eq)
+}
 
 ///|
 pub extend CryptoError with @moonbitlang/core/debug.Debug::{to_repr}

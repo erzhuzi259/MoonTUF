@@ -1,9 +1,10 @@
 ///|
+#derive(Debug)
 pub(all) enum MirrorStatus {
   Unavailable
   Rejected(ClientError)
   Verified
-} derive(Debug)
+}
 
 ///|
 pub extend MirrorStatus with @debug.Debug::{to_repr}
